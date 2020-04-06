@@ -3,7 +3,6 @@ package cn.nubia.systemui.fingerprint
 import android.os.Handler
 import android.os.HandlerThread
 import android.os.Looper
-import com.example.administrator.myapplication.MyService
 import java.util.*
 import java.util.concurrent.LinkedBlockingQueue
 
@@ -43,21 +42,24 @@ class ThreadHelp private constructor(){
         }
     }
 
-    fun <T> synFingerprint(action: MyService.Action<T>):T{
+    fun <T> synFingerprint(action: ThreadHelp.Action<T>):T{
         return syn(action, mFingerprintHandler)
     }
 
-    fun <T> synMain(action: MyService.Action<T>):T{
+    fun <T> synMain(action: ThreadHelp.Action<T>):T{
         return syn(action, mMainHandler)
     }
 
-    fun <T> syn(action: MyService.Action<T>, handler: Handler):T{
+    @SuppressWarnings("unchecked")
+    fun <T> syn(action: ThreadHelp.Action<T>, handler: Handler):T{
         val queue = pollQueue()
         try {
             handler.post{
                 queue.add(action.action())
             }
-            return queue.poll() as T
+            var obj = queue.poll()
+            return obj!! as T
+
         }finally {
             peekQueue(queue)
         }
