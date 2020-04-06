@@ -10,10 +10,12 @@ import cn.nubia.systemui.common.SystemUI
 class UpdateMonitor private constructor(){
     private val mHandler = Handler(Looper.getMainLooper());
     private val mList = mutableListOf<UpdateMonitorCallback>()
+    private val mDisplayStateMap = mutableMapOf<Int, Int>()
     interface UpdateMonitorCallback{
         fun onSystemUIConnect(systemui: SystemUI){}
         fun onSystemUIDisConnect(){}
-        fun callSystemUIChange(type:Int, data:Bundle){}
+        fun onSystemUIChange(type:Int, data:Bundle){}
+        fun onDisplayChange(displayId: Int, state: Int){}
     }
 
     fun callSystemUIDisConnect(){
@@ -27,7 +29,7 @@ class UpdateMonitor private constructor(){
     fun callSystemUIChange(type:Int, data:Bundle){
         mHandler.post{
             mList.forEach{
-                it.callSystemUIChange(type, data)
+                it.onSystemUIChange(type, data)
             }
         }
     }
@@ -36,6 +38,17 @@ class UpdateMonitor private constructor(){
         mHandler.post{
             mList.forEach{
                 it.onSystemUIConnect(systemui)
+            }
+        }
+    }
+
+    fun callDisplayChange(displayId:Int, state:Int){
+        if(!(mDisplayStateMap.containsKey(displayId) && mDisplayStateMap.get(displayId)==state)){
+            mDisplayStateMap.put(displayId, state)
+            mHandler.post{
+                mList.forEach{
+                    it.onDisplayChange(displayId, state)
+                }
             }
         }
     }
