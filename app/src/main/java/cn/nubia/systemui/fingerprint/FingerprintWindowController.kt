@@ -1,0 +1,3 @@
+package cn.nubia.systemui.fingerprint
+
+object FingerprintWindowController
