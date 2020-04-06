@@ -1,6 +1,7 @@
 package cn.nubia.systemui.ext
 
 import android.content.Context
+import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
 import cn.nubia.systemui.aidl.ISystemUI
@@ -8,9 +9,27 @@ import cn.nubia.systemui.common.SystemUI
 
 class UpdateMonitor private constructor(){
     private val mHandler = Handler(Looper.getMainLooper());
-    val mList = mutableListOf<UpdateMonitorCallback>()
+    private val mList = mutableListOf<UpdateMonitorCallback>()
     interface UpdateMonitorCallback{
         fun onSystemUIConnect(systemui: SystemUI){}
+        fun onSystemUIDisConnect(){}
+        fun callSystemUIChange(type:Int, data:Bundle){}
+    }
+
+    fun callSystemUIDisConnect(){
+        mHandler.post{
+            mList.forEach{
+                it.onSystemUIDisConnect()
+            }
+        }
+    }
+
+    fun callSystemUIChange(type:Int, data:Bundle){
+        mHandler.post{
+            mList.forEach{
+                it.callSystemUIChange(type, data)
+            }
+        }
     }
 
     fun callSystemUIConnect(systemui: SystemUI){

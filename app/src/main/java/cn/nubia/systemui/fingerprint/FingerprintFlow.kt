@@ -1,16 +1,38 @@
 package cn.nubia.systemui.fingerprint
 
-abstract class  FingerprintFlow{
-    abstract fun onDown()
-    abstract fun onUiReady()
-    abstract fun onUp()
+import android.util.Log
 
-    enum class State{
+abstract class  FingerprintFlow{
+    val TAG by lazy { "Fp.${this.javaClass.simpleName}"}
+    enum class FlowState{
         NORMAL, DOWN, UI_READY, UP
     }
+    fun callDown(){
+        when(getState()){
+            FlowState.NORMAL, FlowState.UP -> {onDown()}
+            else -> {Log.i(TAG, "ERROR down, mState=${getState()}")}
+        }
+    }
+    abstract fun onDown()
 
-    private var mState:State = State.NORMAL
+    fun callUiReady(){
+        when(getState()){
+            FlowState.DOWN -> {onUiReady()}
+            else -> {Log.i(TAG, "ERROR uiready, mState=${getState()}")}
+        }
+    }
+    abstract fun onUiReady()
+    fun callUp(){
+        when(getState()){
+            FlowState.UI_READY -> {onUp()}
+            else -> {Log.i(TAG, "ERROR up, mState=${getState()}")}
+        }
+    }
+    abstract fun onUp()
+
+    private var mState:FlowState = FlowState.NORMAL
     fun getState() = mState
+
     class ScreenOnFlow:FingerprintFlow() {
         override fun onDown() {
         }

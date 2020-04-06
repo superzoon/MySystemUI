@@ -1,0 +1,30 @@
+package cn.nubia.systemui.fingerprint
+
+import java.io.FileDescriptor
+import java.io.PrintWriter
+import java.util.concurrent.atomic.AtomicBoolean
+import java.util.concurrent.atomic.AtomicInteger
+
+
+private var mAodMode:AtomicInteger = AtomicInteger(0)
+private var mIsHbm:AtomicBoolean = AtomicBoolean(false)
+
+@Synchronized fun setAodMode(mode:Int){
+    if(mAodMode.get() != mode){
+        mAodMode.getAndSet(mode)
+    }
+}
+
+@Synchronized fun setHBM(enable:Boolean){
+    if(mIsHbm.get() != enable){
+        mIsHbm.getAndSet(enable)
+    }
+}
+
+@Synchronized fun writeNode(path:String, value:String){
+
+}
+
+fun dump(fd: FileDescriptor?, writer: PrintWriter?, args: Array<out String>?) {
+
+}

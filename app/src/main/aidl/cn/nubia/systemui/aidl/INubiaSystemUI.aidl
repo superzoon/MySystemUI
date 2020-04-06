@@ -1,9 +1,10 @@
 // INubiaSystemUI.aidl
 package cn.nubia.systemui.aidl;
 
-import cn.nubia.systemui.aidl.ISystemUI;
+import android.os.Bundle;
 // Declare any non-default types here with import statements
 
 interface INubiaSystemUI {
-    void onConnect(in ISystemUI systemui);
+    oneway void onConnect(in IBinder systemui);
+    oneway void onSystemUIChange(int type, in Bundle data);
 }
