@@ -1,4 +1,4 @@
-package cn.nubia.systemui.ext
+package cn.nubia.systemui.common
 
 import android.view.View
 import android.widget.Button
