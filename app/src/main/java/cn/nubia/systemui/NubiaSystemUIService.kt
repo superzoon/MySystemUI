@@ -12,6 +12,7 @@ import android.os.IBinder
 import android.telecom.TelecomManager
 import android.telephony.PhoneStateListener
 import android.telephony.TelephonyManager
+import android.util.Log
 import android.view.WindowManager
 import cn.nubia.systemui.aidl.ISystemUI;
 import cn.nubia.systemui.aidl.INubiaSystemUI;
@@ -24,11 +25,13 @@ import java.io.PrintWriter
 
 @SuppressLint("NewApi")
 class NubiaSystemUIService:Service(){
+    val TAG = "${NubiaSystemUIApplication.TAG}.Service"
+
     val mNubiaSystemUI by lazy { NubiaSystemUI() }
     val mWindowManager by lazy { getSystemService(WindowManager::class.java) }
     val mDisplayManager by lazy { getSystemService(DisplayManager::class.java) }
-    val mTelecomManager by lazy { getSystemServiceName(TelecomManager::class.java) }
-    val mTelephonyManager by lazy { getSystemServiceName(TelephonyManager::class.java) }
+    val mTelecomManager by lazy { getSystemService(TelecomManager::class.java) }
+    val mTelephonyManager by lazy { getSystemService(TelephonyManager::class.java) }
 
     private val mInternalObj = object :BroadcastReceiver(), DisplayManager.DisplayListener {
         val mDisplayIds = arrayListOf<Int>()
@@ -74,32 +77,24 @@ class NubiaSystemUIService:Service(){
 
     override fun onCreate() {
         super.onCreate()
-        register();
-        Controller.forEach { controller -> {
-            controller.start(this)
-        } }
+        register()
+        Controller.forEach { it.onStart(this) }
     }
 
 
     override fun onTrimMemory(level: Int) {
         super.onTrimMemory(level)
-        Controller.forEach { controller -> {
-            controller.onTrimMemory(level)
-        } }
+        Controller.forEach { it.onTrimMemory(level) }
     }
 
     override fun dump(fd: FileDescriptor?, writer: PrintWriter?, args: Array<out String>?) {
         super.dump(fd, writer, args)
-        Controller.forEach { controller -> {
-            controller.dump(fd, writer, args)
-        } }
+        Controller.forEach { it.dump(fd, writer, args) }
     }
 
     override fun onDestroy() {
         super.onDestroy()
-        Controller.forEach { controller -> {
-            controller.stop(this)
-        } }
+        Controller.forEach { it.onStop(this) }
         unRegister();
     }
 

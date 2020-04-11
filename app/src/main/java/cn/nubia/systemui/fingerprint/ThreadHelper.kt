@@ -60,7 +60,7 @@ class ThreadHelper private constructor(){
     }
 
     @Synchronized fun peekQueue(queue: Queue<Any>){
-        if(mQueueList.size<5){
+        if(mQueueList.size<10){
             mQueueList.add(queue)
         }
     }

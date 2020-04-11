@@ -3,6 +3,7 @@
     package="cn.nubia.systemui">
     <uses-permission android:name="android.Manifest.permission.READ_CALL_LOG"/>
     <application
+        android:name=".NubiaSystemUIApplication"
         android:allowBackup="true"
         android:icon="@mipmap/ic_launcher"
         android:label="@string/app_name"
@@ -16,6 +17,9 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
+        <service android:name=".NubiaSystemUIService"
+            android:exported="true"
+        />
     </application>
 
 </manifest>
