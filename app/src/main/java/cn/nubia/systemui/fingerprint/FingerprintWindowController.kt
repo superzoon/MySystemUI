@@ -20,12 +20,12 @@ class FingerprintWindowController(mContext: Context):Controller(mContext){
     }
 
     override fun onStart(service: NubiaSystemUIService) {
-        mSurfaceView?.addView()
-        mSurfaceView?.show()
+        mSurfaceView.addView()
+        mSurfaceView.show()
     }
 
     override fun onStop(service: NubiaSystemUIService) {
-        mSurfaceView?.removeView()
+        mSurfaceView.removeView()
     }
 
 }

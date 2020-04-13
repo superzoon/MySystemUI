@@ -13,7 +13,7 @@ import cn.nubia.systemui.fingerprint.FingerprintWindowController
 import java.io.FileDescriptor
 import java.io.PrintWriter
 
-abstract class Controller(val mContext:Context) {
+abstract class Controller(val mContext:Context):Dump {
     abstract fun getHandler():Handler
     abstract fun onStart(service:NubiaSystemUIService)
     abstract fun onStop(service:NubiaSystemUIService)
@@ -30,7 +30,7 @@ abstract class Controller(val mContext:Context) {
         Log.i(TAG, "${this.javaClass.simpleName} onTrimMemory ${level}")
     }
 
-    open fun dump(fd: FileDescriptor?, writer: PrintWriter?, args: Array<out String>?){
+    override fun dump(fd: FileDescriptor?, writer: PrintWriter?, args: Array<out String>?){
         Log.i(TAG, "dump ${fd}.${writer}.${args}")
     }
 

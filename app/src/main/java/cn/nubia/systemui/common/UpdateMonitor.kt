@@ -1,9 +1,6 @@
 package cn.nubia.systemui.common
 
-import android.content.BroadcastReceiver
-import android.content.Context
-import android.content.Intent
-import android.content.IntentFilter
+import android.content.*
 import android.hardware.display.DisplayManager
 import android.os.Bundle
 import android.os.Handler
@@ -26,7 +23,7 @@ class UpdateMonitor private constructor(){
     private val mDisplayStateMap = mutableMapOf<Int, Int>()
     private var mSystemUI:SystemUI? = null
     private val mContext by lazy {
-        NubiaSystemUIApplication.getContext()!!
+        NubiaSystemUIApplication.getContext()
     }
     val mWindowManager by lazy { mContext.getSystemService(WindowManager::class.java) }
     val mDisplayManager by lazy { mContext.getSystemService(DisplayManager::class.java) }
@@ -36,7 +33,18 @@ class UpdateMonitor private constructor(){
         fun onSystemUIConnect(systemui: SystemUI){}
         fun onSystemUIDisConnect(){}
         fun onSystemUIChange(type:Int, data:Bundle){}
-        fun onDisplayChange(displayId: Int, state: Int, stateStr:String){}
+        fun onDisplayChange(displayId: Int, state:Int, stateStr:String){}
+        fun onFocusWindowChange(name:ComponentName){}
+        fun onStartActivity(name:ComponentName){}
+        fun onStopActivity(name:ComponentName){}
+        fun onBiometricChange(type:Int, data:Bundle){}
+        fun onAodViewChange(show:Boolean){}
+        fun onKeyguardChange(show:Boolean, occluded:Boolean){}
+        fun onStartWakingUp(){}
+        fun onFinishedWakingUp(){}
+        fun onStartGoingToSleep(reason:Int){}
+        fun onFinishedGoingToSleep(){}
+        fun onFingerprintKeycode(keycode:Int){}
     }
 
     val mPhoneStateListener = object :PhoneStateListener(){
@@ -128,11 +136,11 @@ class UpdateMonitor private constructor(){
         }
     }
 
-    fun addCallback(callback: UpdateMonitorCallback){
-        if(callback != null){
+    fun addCallback(callback: UpdateMonitorCallback?){
+        callback.apply {
             mHandler.post{
-                if(mList.find { it.get()== callback } == null){
-                    mList.add(WeakReference(callback))
+                if(mList.find { it.get()== this } == null){
+                    mList.add(WeakReference(this))
                 }
                 removeCallback(null)
                 Log.i(TAG, "addCallback size=${mList.size}")
@@ -143,6 +151,94 @@ class UpdateMonitor private constructor(){
     fun removeCallback(callback: UpdateMonitorCallback?){
         mHandler.post{
             mList.removeAll { it.get() == callback }
+        }
+    }
+
+    fun callFocusWindowChange(name: ComponentName) {
+        mHandler.post{
+            mList.forEach{
+                it.get()?.onFocusWindowChange(name)
+            }
+        }
+    }
+
+    fun callStartActivity(name: ComponentName) {
+        mHandler.post{
+            mList.forEach{
+                it.get()?.onStartActivity(name)
+            }
+        }
+    }
+
+    fun callStopActivity(name: ComponentName) {
+        mHandler.post{
+            mList.forEach{
+                it.get()?.onStopActivity(name)
+            }
+        }
+    }
+
+    fun callBiometricChange(type: Int, data: Bundle) {
+        mHandler.post{
+            mList.forEach{
+                it.get()?.onBiometricChange(type, data)
+            }
+        }
+    }
+
+    fun callAodViewChange(show: Boolean) {
+        mHandler.post{
+            mList.forEach{
+                it.get()?.onAodViewChange(show)
+            }
+        }
+    }
+
+    fun callKeyguardChange(show: Boolean, occluded: Boolean) {
+        mHandler.post{
+            mList.forEach{
+                it.get()?.onKeyguardChange(show, occluded)
+            }
+        }
+    }
+
+    fun callStartWakingUp() {
+        mHandler.post{
+            mList.forEach{
+                it.get()?.onStartWakingUp()
+            }
+        }
+    }
+
+    fun callFinishedWakingUp() {
+        mHandler.post{
+            mList.forEach{
+                it.get()?.onFinishedWakingUp()
+            }
+        }
+    }
+
+    fun callStartGoingToSleep(reason: Int) {
+        mHandler.post{
+            mList.forEach{
+                it.get()?.onStartGoingToSleep(reason)
+            }
+        }
+    }
+
+    fun callFinishedGoingToSleep() {
+        mHandler.post{
+            mList.forEach{
+                it.get()?.onFinishedGoingToSleep()
+            }
+        }
+    }
+
+    fun callFingerprintKeycode(keycode: Int) {
+        mHandler.post{
+            mList.forEach{
+                it.get()?.onFingerprintKeycode(keycode)
+            }
         }
     }
 

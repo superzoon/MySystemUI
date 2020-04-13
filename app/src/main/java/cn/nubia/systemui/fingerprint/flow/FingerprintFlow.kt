@@ -1,9 +1,12 @@
-package cn.nubia.systemui.fingerprint
+package cn.nubia.systemui.fingerprint.flow
 
 import android.util.Log
+import cn.nubia.systemui.NubiaSystemUIApplication
+import cn.nubia.systemui.common.Dump
+import cn.nubia.systemui.fingerprint.FingerprintController
 
-abstract class  FingerprintFlow{
-    val TAG by lazy { "Fp.${this.javaClass.simpleName}"}
+abstract class  FingerprintFlow(val mController:FingerprintController):Dump{
+    val TAG by lazy { "${NubiaSystemUIApplication.TAG}.${this.javaClass.simpleName}"}
     enum class FlowState{
         NORMAL, DOWN, UI_READY, UP
     }
@@ -30,10 +33,10 @@ abstract class  FingerprintFlow{
     }
     abstract fun onUp()
 
-    private var mState:FlowState = FlowState.NORMAL
+    private var mState: FlowState = FlowState.NORMAL
     fun getState() = mState
 
-    class ScreenOnFlow:FingerprintFlow() {
+    class ScreenOnFlow(mController:FingerprintController): FingerprintFlow(mController) {
         override fun onDown() {
         }
 
@@ -44,7 +47,7 @@ abstract class  FingerprintFlow{
         }
     }
 
-    class ScreenOffFlow:FingerprintFlow(){
+    class ScreenOffFlow(mController:FingerprintController): FingerprintFlow(mController) {
         override fun onDown() {
         }
 
@@ -54,7 +57,7 @@ abstract class  FingerprintFlow{
         override fun onUp() {
         }
     }
-    class ScreenAodFlow:FingerprintFlow(){
+    class ScreenAodFlow(mController:FingerprintController): FingerprintFlow(mController) {
         override fun onDown() {
         }
 

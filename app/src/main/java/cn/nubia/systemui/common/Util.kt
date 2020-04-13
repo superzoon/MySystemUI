@@ -36,39 +36,39 @@ fun dump(fd: FileDescriptor?, writer: PrintWriter?, args: Array<out String>?) {
 class PointUtil{
     companion object {
 
-        //·µ»ØÁ½Ô²ÍâÇĞµã×ø±ê
+        //è¿”å›ä¸¤åœ†å¤–åˆ‡ç‚¹åæ ‡
         fun getCircleTangentPointOut(c1: PointF, r1: Float, c2: PointF, r2: Float): Array<PointF?>? {
             val centerLine = getPointDistance(c1, c2)
             if (centerLine > Math.abs(r1 - r2)) {
-                //¼ÆËãÍâÇĞ
+                //è®¡ç®—å¤–åˆ‡
                 val points = arrayOfNulls<PointF>(8)
-                //Ô²ĞÄÁ¬ÏßÓëÔ²1µÄ½»µã
+                //åœ†å¿ƒè¿çº¿ä¸åœ†1çš„äº¤ç‚¹
                 val r1Point = ratioPoint(c1, c2, r1 / centerLine)
                 points[6] = r1Point
-                //Ô²ĞÄÁ¬ÏßÓëÔ²2µÄ½»µã
+                //åœ†å¿ƒè¿çº¿ä¸åœ†2çš„äº¤ç‚¹
                 val r2Point = ratioPoint(c1, c2, (centerLine - r2) / centerLine)
                 points[7] = r2Point
-                //Á½Ôª½»µãÁ¬ÏßºÍÁ½Ô²½¹µãÔÚ×ó±ßÔ²µÄ½Ç¶È
+                //ä¸¤å…ƒäº¤ç‚¹è¿çº¿å’Œä¸¤åœ†ç„¦ç‚¹åœ¨å·¦è¾¹åœ†çš„è§’åº¦
                 val angleR1 = getAngle(r1, centerLine, r2)
-                //Á½Ôª½»µãÁ¬ÏßºÍÁ½Ô²½¹µãÔÚÓÒ±ßÔ²µÄ½Ç¶È
+                //ä¸¤å…ƒäº¤ç‚¹è¿çº¿å’Œä¸¤åœ†ç„¦ç‚¹åœ¨å³è¾¹åœ†çš„è§’åº¦
                 val angleR2 = getAngle(r2, centerLine, r1)
-                //ÍâÇĞÏßÓëÔ²ĞÄÁ¬ÏßµÄ½Ç¶È(0~90¶ÈÖ®¼äµÄ½Ç¶È)
+                //å¤–åˆ‡çº¿ä¸åœ†å¿ƒè¿çº¿çš„è§’åº¦(0~90åº¦ä¹‹é—´çš„è§’åº¦)
                 val angle = Math.acos((Math.abs(r1 - r2) / centerLine).toDouble()).toFloat()
-                //Á½Ô²µÄ½»µã
+                //ä¸¤åœ†çš„äº¤ç‚¹
                 points[4] = rotatePoint(r1Point, c1, angleR1)
                 points[5] = rotatePoint(r2Point, c2, angleR2)
                 if (r1 >= r2) {
-                    //ÇĞÏßÓëµÚÒ»¸öÔ²µÄ½»µã
+                    //åˆ‡çº¿ä¸ç¬¬ä¸€ä¸ªåœ†çš„äº¤ç‚¹
                     points[0] = rotatePoint(r1Point, c1, angle)
                     points[1] = rotatePoint(r1Point, c1, -angle)
-                    //ÇĞÏßÓëµÚ¶ş¸öÔ²µÄ½»µã
+                    //åˆ‡çº¿ä¸ç¬¬äºŒä¸ªåœ†çš„äº¤ç‚¹
                     points[2] = rotatePoint(r2Point, c2, -(Math.PI - angle).toFloat())
                     points[3] = rotatePoint(r2Point, c2, (Math.PI - angle).toFloat())
                 } else {
-                    //ÇĞÏßÓëµÚÒ»¸öÔ²µÄ½»µã
+                    //åˆ‡çº¿ä¸ç¬¬ä¸€ä¸ªåœ†çš„äº¤ç‚¹
                     points[0] = rotatePoint(r1Point, c1, (Math.PI - angle).toFloat())
                     points[1] = rotatePoint(r1Point, c1, -(Math.PI - angle).toFloat())
-                    //ÇĞÏßÓëµÚ¶ş¸öÔ²µÄ½»µã
+                    //åˆ‡çº¿ä¸ç¬¬äºŒä¸ªåœ†çš„äº¤ç‚¹
                     points[2] = rotatePoint(r2Point, c2, -angle)
                     points[3] = rotatePoint(r2Point, c2, angle)
                 }
@@ -78,25 +78,25 @@ class PointUtil{
             }
         }
 
-        //·µ»ØÁ½Ô²ÄÚÇĞµã×ø±ê
+        //è¿”å›ä¸¤åœ†å†…åˆ‡ç‚¹åæ ‡
          fun getCircleTangentPointIn(c1: PointF, r1: Float, c2: PointF, r2: Float): Array<PointF?>? {
             val centerLine = getPointDistance(c1, c2)
             if (centerLine > r1 + r2) {
-                //¼ÆËãÄÚÇĞ
+                //è®¡ç®—å†…åˆ‡
                 val points = arrayOfNulls<PointF>(7)
-                //ÄÚÇĞÏß½¹µã
+                //å†…åˆ‡çº¿ç„¦ç‚¹
                 points[4] = PointF((c1.x * r2 + c2.x * r1) / (r1 + r2), (c1.y * r2 + c2.y * r1) / (r1 + r2))
                 val l1 = centerLine * r1 / (r1 + r2)
                 val l2 = centerLine * r2 / (r1 + r2)
-                //Ô²ĞÄÁ¬ÏßÓëÔ²1µÄ½»µã
+                //åœ†å¿ƒè¿çº¿ä¸åœ†1çš„äº¤ç‚¹
                 points[5] = ratioPoint(c1, points[4]!!, r1 / l1)
                 val angle = Math.acos((r1 / l1).toDouble()).toFloat()
-                //µÚ1¸öÔ²µÄÇĞµã
+                //ç¬¬1ä¸ªåœ†çš„åˆ‡ç‚¹
                 points[0] = rotatePoint(points[5]!!, c1, angle)
                 points[1] = rotatePoint(points[5]!!, c1, -angle)
-                //Ô²ĞÄÁ¬ÏßÓëÔ²2µÄ½»µã
+                //åœ†å¿ƒè¿çº¿ä¸åœ†2çš„äº¤ç‚¹
                 points[6] = ratioPoint(points[4], c2, (l2 - r2) / l2)
-                //µÚ2¸öÔ²µÄÇĞµã
+                //ç¬¬2ä¸ªåœ†çš„åˆ‡ç‚¹
                 points[2] = rotatePoint(points[6]!!, c2, -angle)
                 points[3] = rotatePoint(points[6]!!, c2, angle)
                 return points
@@ -104,7 +104,7 @@ class PointUtil{
             return null
         }
 
-        //¸ù¾İµã a, b, cÎ»ÖÃ¾àÀëÎªab, bc, ac»ñÈ¡bµãÔÚacÉÏµÄ´¹µãd£¬·µ»Ø´¹µãd
+        //æ ¹æ®ç‚¹ a, b, cä½ç½®è·ç¦»ä¸ºab, bc, acè·å–bç‚¹åœ¨acä¸Šçš„å‚ç‚¹dï¼Œè¿”å›å‚ç‚¹d
         fun getVerticalPoint(a: PointF, b: PointF, c: PointF): PointF {
             val ab = getPointDistance(a, b)
             val ac = getPointDistance(a, c)
@@ -118,17 +118,17 @@ class PointUtil{
             return ratioPoint(a, c, ratio)
         }
 
-        //·µ»ØÁ½µãÖ®¼äµÄ¾àÀë
+        //è¿”å›ä¸¤ç‚¹ä¹‹é—´çš„è·ç¦»
         fun getPointDistance(a: PointF, b: PointF): Float {
             return Math.sqrt(Math.pow((a.x - b.x).toDouble(), 2.0) + Math.pow((a.y - b.y).toDouble(), 2.0)).toFloat()
         }
 
-        //¸ù¾İµã a, b, cÎ»ÖÃ¾àÀëÎªab, bc, ac»ñÈ¡aµã½Ç¶È
+        //æ ¹æ®ç‚¹ a, b, cä½ç½®è·ç¦»ä¸ºab, bc, acè·å–aç‚¹è§’åº¦
         fun getAngle(ab: Float, ac: Float, bc: Float): Float {
             return Math.acos(((ab * ab + ac * ac - bc * bc) / (2f * ab * ac)).toDouble()).toFloat()
         }
 
-        //»ñÈ¡Ò»¸öµã£¬ÆğÊ¼µãµ½¸Ãµã³¤¶È³ıÒÔÆğÊ¼µãµ½½áÊøµã³¤¶ÈµÄ±ÈÀıÎªratio
+        //è·å–ä¸€ä¸ªç‚¹ï¼Œèµ·å§‹ç‚¹åˆ°è¯¥ç‚¹é•¿åº¦é™¤ä»¥èµ·å§‹ç‚¹åˆ°ç»“æŸç‚¹é•¿åº¦çš„æ¯”ä¾‹ä¸ºratio
         fun ratioPoint(startPoint: PointF?, endPoint: PointF, ratio: Float): PointF {
             var startPoint = startPoint
             if (startPoint == null) {
@@ -142,17 +142,17 @@ class PointUtil{
             return ret
         }
 
-        //¿Õ¼äÒ»¸öµãÎ§ÈÆcenterµãĞı×ªangle½Ç¶ÈºóµÄÎ»ÖÃ
+        //ç©ºé—´ä¸€ä¸ªç‚¹å›´ç»•centerç‚¹æ—‹è½¬angleè§’åº¦åçš„ä½ç½®
         fun rotatePoint(point: PointF, center: PointF?, angle: Float): PointF {
             var center = center
             if (center == null) {
                 center = PointF(0f, 0f)
             }
             val ret = PointF()
-            //»ñÈ¡Ïà¶ÔÎ»ÖÃ
+            //è·å–ç›¸å¯¹ä½ç½®
             val x = point.x - center.x
             val y = point.y - center.y
-            //¸ù¾İÑ¡Ôñ¾ØÕóĞı×ªºó¼ÓÉÏÖĞĞÄµãÎ»ÖÃ
+            //æ ¹æ®é€‰æ‹©çŸ©é˜µæ—‹è½¬ååŠ ä¸Šä¸­å¿ƒç‚¹ä½ç½®
             ret.x = (x * Math.cos(angle.toDouble()) - y * Math.sin(angle.toDouble()) + center.x).toFloat()
             ret.y = (x * Math.sin(angle.toDouble()) + y * Math.cos(angle.toDouble()) + center.y).toFloat()
             return ret
