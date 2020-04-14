@@ -1,9 +1,12 @@
 package cn.nubia.systemui.common
 
+import android.os.Bundle
 import android.os.IBinder
+import android.os.RemoteException
 import cn.nubia.systemui.aidl.ISystemUI
 
-class SystemUI(private val mBinder: IBinder){
+class SystemUI(private val mBinder: IBinder):ISystemUI{
+
     private val mSystemUI = ISystemUI.Stub.asInterface(mBinder)
 
     companion object {
@@ -27,8 +30,61 @@ class SystemUI(private val mBinder: IBinder){
         val POLICY_VR = 4
     }
 
-    fun setAodMode(mode:Int){
-        mSystemUI.setAodMode(mode)
+    override fun setAodMode(mode:Int){
+        try {
+            mSystemUI.setAodMode(mode)
+        } catch (e: RemoteException) {
+            e.printStackTrace()
+        }
     }
 
+    override fun syncStartDozing() {
+        try {
+            mSystemUI.syncStartDozing()
+        } catch (e: RemoteException) {
+            e.printStackTrace()
+        }
+    }
+
+    override fun syncStopDozing() {
+        try {
+            mSystemUI.syncStopDozing()
+        } catch (e: RemoteException) {
+            e.printStackTrace()
+        }
+    }
+
+    override fun setTouchPanelMode(mode: Int) {
+        try {
+            mSystemUI.setTouchPanelMode(mode)
+        } catch (e: RemoteException) {
+            e.printStackTrace()
+        }
+    }
+
+    override fun setHbmMode(mode: Int) {
+        try {
+            mSystemUI.setHbmMode(mode)
+        } catch (e: RemoteException) {
+            e.printStackTrace()
+        }
+    }
+
+    override fun callFingerprintService(type: Int, data: Bundle?) {
+        try {
+            mSystemUI.callFingerprintService(type, data)
+        } catch (e: RemoteException) {
+            e.printStackTrace()
+        }
+    }
+
+    override fun asBinder(): IBinder = mBinder
+
+    override fun callSystemUI(type: Int, data: Bundle) {
+        try {
+            mSystemUI.callSystemUI(type, data)
+        } catch (e: RemoteException) {
+            e.printStackTrace()
+        }
+    }
 }

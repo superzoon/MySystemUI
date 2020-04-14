@@ -149,7 +149,6 @@ class FingerprintController(mContext:Context):Controller(mContext), Dump{
     }
 
     override fun dump(fd: FileDescriptor?, writer: PrintWriter?, args: Array<out String>?) {
-        super.dump(fd, writer, args)
         mFlow?.dump(fd, writer, args)
     }
 }
