@@ -130,9 +130,10 @@ class PointUtil{
 
         //获取一个点，起始点到该点长度除以起始点到结束点长度的比例为ratio
         fun ratioPoint(startPoint: PointF?, endPoint: PointF, ratio: Float): PointF {
-            var startPoint = startPoint
-            if (startPoint == null) {
-                startPoint = PointF(0f, 0f)
+            var startPoint =  if (startPoint == null) {
+                PointF(0f, 0f)
+            } else{
+                startPoint
             }
             val ret = PointF()
             val x = endPoint.x - startPoint.x
@@ -144,9 +145,10 @@ class PointUtil{
 
         //空间一个点围绕center点旋转angle角度后的位置
         fun rotatePoint(point: PointF, center: PointF?, angle: Float): PointF {
-            var center = center
-            if (center == null) {
-                center = PointF(0f, 0f)
+            var center = if (center == null) {
+                PointF(0f, 0f)
+            }else{
+                center
             }
             val ret = PointF()
             //获取相对位置
