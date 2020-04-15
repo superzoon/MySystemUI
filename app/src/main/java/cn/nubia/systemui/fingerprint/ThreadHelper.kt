@@ -29,6 +29,16 @@ class ThreadHelper private constructor(){
         handler
     }
 
+    private val mSurfaceHandler:Handler by lazy {
+        var t = HandlerThread("SurfaceThread")
+        t.start()
+        val handler = Handler(t.looper)
+        handler.post{
+            Process.setThreadPriority(Process.THREAD_PRIORITY_DISPLAY-1)
+        }
+        handler
+    }
+
     private val mBackgroundHandler:Handler by lazy {
         var t = HandlerThread("BgThread")
         t.start()
@@ -41,6 +51,10 @@ class ThreadHelper private constructor(){
 
     fun getMainHander():Handler{
         return mMainHandler
+    }
+
+    fun getSurfaceHandler():Handler{
+        return mSurfaceHandler
     }
 
     fun getFingerHander():Handler{

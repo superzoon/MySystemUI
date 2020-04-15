@@ -40,17 +40,12 @@ abstract class BaseSurfaceHolder(val mContext:Context) : SurfaceHolder {
         protected set
 
     var requestedType = -1
-        internal set
 
     internal var mLastLockTime: Long = 0
 
     internal var mType = -1
     internal val mSurfaceFrame = Rect()
     internal var mTmpDirty: Rect? = null
-
-    init {
-        Log.i(TAG, "SURFACE = ${mSurface}")
-    }
 
     val callbacks: Array<SurfaceHolder.Callback?>?
         get() {

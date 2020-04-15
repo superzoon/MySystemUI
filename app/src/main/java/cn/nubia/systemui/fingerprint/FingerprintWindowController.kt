@@ -3,18 +3,29 @@ package cn.nubia.systemui.fingerprint
 import android.content.Context
 import android.graphics.PixelFormat
 import android.os.Handler
+import android.util.Log
 import android.view.Surface
 import android.view.SurfaceControl
 import android.view.SurfaceSession
+import cn.nubia.systemui.NubiaSystemUIApplication
 import cn.nubia.systemui.NubiaSystemUIService
 import cn.nubia.systemui.common.Controller
 import cn.nubia.systemui.fingerprint.ui.SurfaceViewWindow
+import cn.nubia.systemui.fingerprint.view.BaseSurfaceHolder
 
 class FingerprintWindowController(mContext: Context):Controller(mContext){
+
+    companion object {
+        val TAG = "${NubiaSystemUIApplication.TAG}.WindowControl"
+    }
 
     val mHandler = ThreadHelper.get().getFingerHander()
     val mFingerprintController by lazy { getController(FingerprintController::class.java) }
     val mSurfaceView by lazy { SurfaceViewWindow() }
+
+
+
+
     override fun getHandler(): Handler {
         return mHandler
     }

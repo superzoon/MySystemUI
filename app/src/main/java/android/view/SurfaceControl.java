@@ -13,10 +13,12 @@ public class SurfaceControl {
     }
     public void setLayer(int zorder){}
     public void setPosition(float x, float y){}
+    public void setBufferSize(int width, int height){}
     public void setMatrix(float dsdx, float dtdx, float dtdy, float dsdy){}
     public void setWindowCrop(Rect crop){}
     public void setWindowCrop(int width, int height){}
     public boolean isValid(){return false;}
+    public void setAlpha(float alpha){}
     public void show(){}
     public void hide(){}
     public static class Builder{
