@@ -1,50 +1,54 @@
 package cn.nubia.systemui.fingerprint.ui
 
+import android.content.Context
 import android.graphics.PixelFormat
+import android.graphics.Rect
+import android.util.Log
 import android.view.*
+import cn.nubia.systemui.NubiaSystemUIApplication
 
 
-class SurfaceViewWindow{
-
+class SurfaceViewWindow(val mContext:Context){
+    companion object {
+        val TAG = "${NubiaSystemUIApplication.TAG}.Window"
+    }
     var isShow = false
     var mSurfaceControl:SurfaceControl?=null
     val mTransaction = SurfaceControl.Transaction()
-    val mSurface by lazy {
-        Surface::class.java.getConstructor().newInstance() as Surface
-    }
-
-    fun copyFrom(surface: Surface, control: SurfaceControl){
-        Surface::class.java.getDeclaredMethod("copyFrom", SurfaceControl::class.java).invoke(surface, control)
-    }
-
+    val mSurfaceView = SurfaceView(mContext)
+    var mSurface= mSurfaceView.holder.surface
+    val icon_size = 600
+    val icon_x = (1280-icon_size)/2f
     fun addView(){
-        val icon_size = 200
-        val icon_x = (1280-icon_size)/2f
         mSurfaceControl = SurfaceControl.Builder(SurfaceSession())
-                .setName("FingerprintView")
+                .setName("FingerprintView_xlan")
                 .setOpaque(true)
                 .setBufferSize(icon_size, icon_size)
                 .setFormat(PixelFormat.TRANSLUCENT)
-//                .setFlags(SurfaceControl.HIDDEN)
+                .setFlags(SurfaceControl.HIDDEN)
                 .build()
+        Log.i(TAG, "mSurfaceControl =${mSurfaceControl?.javaClass} -> ${mSurfaceControl}")
         try {
             SurfaceControl.openTransaction()
             mSurfaceControl?.apply {
-                setLayer(WindowManager.LayoutParams.TYPE_APPLICATION_OVERLAY)
+                setLayer(9999999)
+                show()
+                setAlpha(1f)
                 setPosition(icon_x,1300f)
                 setMatrix(1f,0f,0f,1f)
-//                setWindowCrop(icon_size, icon_size)
+                setWindowCrop(Rect(0,0,icon_size, icon_size))
             }
         }finally {
             SurfaceControl.closeTransaction()
         }
-        mSurfaceControl?.also { copyFrom(mSurface, it)}
-        draw()
+        mSurfaceControl?.also { SurfaceUtil.copyFrom(mSurface, it)}
     }
 
     private fun  draw(){
+        Log.i(TAG, "mSurfaceControl = draw ${mSurface}")
         try {
-            var canvas = mSurface.lockCanvas(null)
+            var canvas = mSurface.lockCanvas(Rect(0,0,icon_size,icon_size))
+            Log.i(TAG, "canvas = ${canvas}")
             canvas.drawColor(0xff0000)
             mSurface.unlockCanvasAndPost(canvas)
         }catch (e:Exception){ }
@@ -60,7 +64,9 @@ class SurfaceViewWindow{
     }
 
     @Synchronized fun show(){
+        Log.i(TAG, "mSurfaceControl isValid= ${mSurfaceControl}")
         mSurfaceControl?.apply {
+            Log.i(TAG, "mSurfaceControl isValid= ${isValid()}")
             if(!isShow && isValid()){
                 SurfaceControl.openTransaction()
                 try {
@@ -69,8 +75,10 @@ class SurfaceViewWindow{
                     SurfaceControl.closeTransaction()
                 }
                 isShow = true
+                Log.i(TAG, "mSurfaceControl isShow= ${isShow}")
             }
         }
+        draw()
     }
 
     @Synchronized fun hide(){

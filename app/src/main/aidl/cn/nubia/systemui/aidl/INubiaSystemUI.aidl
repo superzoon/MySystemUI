@@ -12,7 +12,7 @@ interface INubiaSystemUI {
     oneway void onStartActivity(in ComponentName name);
     oneway void onStopActivity(in ComponentName name);
     oneway void onBiometricChange(int type, in Bundle data);
-    oneway void onSystemUIChange(int type, in Bundle data);
+    oneway void callNubiaSystemUI(int type, in Bundle data);
     oneway void onAodViewChange(boolean show);
     oneway void onKeyguardChange(boolean show, boolean occluded);
     oneway void onStartWakingUp();

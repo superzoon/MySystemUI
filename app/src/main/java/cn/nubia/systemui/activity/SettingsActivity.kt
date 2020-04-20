@@ -15,28 +15,34 @@ import kotlinx.android.synthetic.main.activity_settings.*
 class SettingsActivity : Activity(),ServiceConnection {
     val TAG = "${NubiaSystemUIApplication.TAG}.Activity"
     var mSystemUI:INubiaSystemUI?  = null;
+
+    val DEBUG = false
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_settings)
-        startService(Intent(this.applicationContext, NubiaSystemUIService::class.java))
-        bindService(Intent(this.applicationContext, NubiaSystemUIService::class.java), this, Context.BIND_AUTO_CREATE)
+        if(DEBUG){
+            startService(Intent(this.applicationContext, NubiaSystemUIService::class.java))
+            bindService(Intent(this.applicationContext, NubiaSystemUIService::class.java), this, Context.BIND_AUTO_CREATE)
+        }
         // Example of a call to a native method
         //sample_text.text = stringFromJNI()
     }
 
     override fun onServiceDisconnected(name: ComponentName?) {
-        Log.i(TAG, "on connect ${mSystemUI}")
+        Log.i(TAG, "on onServiceDisconnected ${mSystemUI}")
         mSystemUI = null
     }
 
     override fun onServiceConnected(name: ComponentName?, service: IBinder?) {
         mSystemUI = INubiaSystemUI.Stub.asInterface(service)
-        Log.i(TAG, "on connect ${mSystemUI}")
+        Log.i(TAG, "on onServiceConnected ${mSystemUI}")
     }
 
     override fun onDestroy() {
         super.onDestroy()
-        unbindService(this)
+        if(DEBUG){
+            unbindService(this)
+        }
     }
 
     /**

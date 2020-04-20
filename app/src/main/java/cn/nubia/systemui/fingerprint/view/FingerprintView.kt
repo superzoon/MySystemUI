@@ -125,8 +125,8 @@ class FingerprintView(val mContext: Context){
                     if(createing){
                         setPosition(mFrameRect.left.toFloat(), mFrameRect.top.toFloat())
                         setMatrix(1f, 0f, 0f, 1f)
-                        setWindowCrop(mFrameRect.width(), mFrameRect.height())
-//                        setBufferSize(mFrameRect.width(), mFrameRect.height())
+                        setWindowCrop(Rect(0,0,mFrameRect.width(), mFrameRect.height()))
+                        setBufferSize(mFrameRect.width(), mFrameRect.height())
                     }
 
                 }

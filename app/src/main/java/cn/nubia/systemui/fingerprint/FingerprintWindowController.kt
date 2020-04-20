@@ -21,16 +21,14 @@ class FingerprintWindowController(mContext: Context):Controller(mContext){
 
     val mHandler = ThreadHelper.get().getFingerHander()
     val mFingerprintController by lazy { getController(FingerprintController::class.java) }
-    val mSurfaceView by lazy { SurfaceViewWindow() }
-
-
-
+    val mSurfaceView by lazy { SurfaceViewWindow(mContext) }
 
     override fun getHandler(): Handler {
         return mHandler
     }
 
     override fun onStart(service: NubiaSystemUIService) {
+        Log.i(TAG, "onStart  service=${service}")
         mSurfaceView.addView()
         mSurfaceView.show()
     }

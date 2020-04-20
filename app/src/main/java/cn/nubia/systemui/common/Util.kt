@@ -95,7 +95,7 @@ class PointUtil{
                 points[0] = rotatePoint(points[5]!!, c1, angle)
                 points[1] = rotatePoint(points[5]!!, c1, -angle)
                 //圆心连线与圆2的交点
-                points[6] = ratioPoint(points[4], c2, (l2 - r2) / l2)
+                points[6] = ratioPoint(points[4]!!, c2, (l2 - r2) / l2)
                 //第2个圆的切点
                 points[2] = rotatePoint(points[6]!!, c2, -angle)
                 points[3] = rotatePoint(points[6]!!, c2, angle)
@@ -129,12 +129,7 @@ class PointUtil{
         }
 
         //获取一个点，起始点到该点长度除以起始点到结束点长度的比例为ratio
-        fun ratioPoint(startPoint: PointF?, endPoint: PointF, ratio: Float): PointF {
-            var startPoint =  if (startPoint == null) {
-                PointF(0f, 0f)
-            } else{
-                startPoint
-            }
+        fun ratioPoint(startPoint: PointF, endPoint: PointF, ratio: Float): PointF {
             val ret = PointF()
             val x = endPoint.x - startPoint.x
             val y = endPoint.y - startPoint.y
@@ -144,12 +139,7 @@ class PointUtil{
         }
 
         //空间一个点围绕center点旋转angle角度后的位置
-        fun rotatePoint(point: PointF, center: PointF?, angle: Float): PointF {
-            var center = if (center == null) {
-                PointF(0f, 0f)
-            }else{
-                center
-            }
+        fun rotatePoint(point: PointF, center: PointF, angle: Float): PointF {
             val ret = PointF()
             //获取相对位置
             val x = point.x - center.x

@@ -2,6 +2,7 @@ package cn.nubia.systemui.common
 
 import android.app.ActivityManager
 import android.content.Context
+import android.content.res.Configuration
 import android.os.Build
 import android.os.Handler
 import android.support.annotation.RequiresApi
@@ -17,18 +18,25 @@ abstract class Controller(val mContext:Context):Dump {
     abstract fun getHandler():Handler
     abstract fun onStart(service:NubiaSystemUIService)
     abstract fun onStop(service:NubiaSystemUIService)
+    protected fun onConfigurationChanged(config: Configuration){}
+    protected fun onTrimMemory(level: Int){}
 
-    fun start(service:NubiaSystemUIService){
+    fun callStart(service:NubiaSystemUIService){
         getHandler().post{onStart(service)}
     }
 
-    fun stop(service:NubiaSystemUIService){
+    fun callStop(service:NubiaSystemUIService){
         getHandler().post{onStop(service)}
     }
 
-    open fun onTrimMemory(level: Int){
-        Log.i(TAG, "${this.javaClass.simpleName} onTrimMemory ${level}")
+    fun callTrimMemory(level: Int){
+        getHandler().post{onTrimMemory(level)}
     }
+
+    fun callConfigurationChanged(config: Configuration){
+        getHandler().post{onConfigurationChanged(config)}
+    }
+
 
     override fun dump(fd: FileDescriptor?, writer: PrintWriter?, args: Array<out String>?){
         Log.i(TAG, "dump ${fd}.${writer}.${args}")
@@ -36,6 +44,7 @@ abstract class Controller(val mContext:Context):Dump {
 
     fun <T> getController(name:Class<T>) :T = Controller.getController(name)
 
+    fun getContext()=mContext
     companion object {
         private val TAG = "${NubiaSystemUIApplication.TAG}.Controller"
         private val mMap = mutableMapOf<Class<*>, Controller>()

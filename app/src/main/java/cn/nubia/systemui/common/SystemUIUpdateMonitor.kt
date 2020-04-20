@@ -1,6 +1,7 @@
 package cn.nubia.systemui.common
 
 import android.content.*
+import android.hardware.biometrics.IBiometricServiceReceiverInternal
 import android.hardware.display.DisplayManager
 import android.os.Bundle
 import android.os.Handler
@@ -11,13 +12,14 @@ import android.util.Log
 import android.view.Display
 import android.view.WindowManager
 import cn.nubia.systemui.NubiaSystemUIApplication
-import cn.nubia.systemui.aidl.ISystemUI
-import cn.nubia.systemui.common.SystemUI
+import cn.nubia.systemui.fingerprint.NubiaBiometricMonitor
+import cn.nubia.systemui.fingerprint.SystemBiometricMonitor
 import cn.nubia.systemui.fingerprint.ThreadHelper
+import java.lang.NumberFormatException
 import java.lang.ref.Reference
 import java.lang.ref.WeakReference
 
-class UpdateMonitor private constructor(){
+class SystemUIUpdateMonitor private constructor(){
     private val mHandler = Handler(Looper.getMainLooper());
     private val mList = mutableListOf<Reference<UpdateMonitorCallback>>()
     private val mDisplayStateMap = mutableMapOf<Int, Int>()
@@ -32,12 +34,10 @@ class UpdateMonitor private constructor(){
     interface  UpdateMonitorCallback{
         fun onSystemUIConnect(systemui: SystemUI){}
         fun onSystemUIDisConnect(){}
-        fun onSystemUIChange(type:Int, data:Bundle){}
         fun onDisplayChange(displayId: Int, state:Int, stateStr:String){}
         fun onFocusWindowChange(name:ComponentName){}
         fun onStartActivity(name:ComponentName){}
         fun onStopActivity(name:ComponentName){}
-        fun onBiometricChange(type:Int, data:Bundle){}
         fun onAodViewChange(show:Boolean){}
         fun onKeyguardChange(show:Boolean, occluded:Boolean){}
         fun onStartWakingUp(){}
@@ -72,7 +72,7 @@ class UpdateMonitor private constructor(){
         override fun onDisplayChanged(displayId: Int) {
             if(displayId==Display.DEFAULT_DISPLAY || mDisplayIds.contains(displayId)){
                 mDisplayManager.getDisplay(displayId)?.state.also {
-                    UpdateMonitor.get().callDisplayChange(displayId, it!!)
+                    SystemUIUpdateMonitor.get().callDisplayChange(displayId, it!!)
                 }
             }
         }
@@ -83,7 +83,7 @@ class UpdateMonitor private constructor(){
         mContext.registerReceiver(mInternalObj, filter)
         mDisplayManager.registerDisplayListener(mInternalObj, ThreadHelper.get().getMainHander())
         mTelephonyManager.listen(mPhoneStateListener, PhoneStateListener.LISTEN_CALL_STATE)
-        mHandler.post{UpdateMonitor.get().callDisplayChange(Display.DEFAULT_DISPLAY, mDisplayManager.getDisplay(Display.DEFAULT_DISPLAY).state)}
+        mHandler.post{SystemUIUpdateMonitor.get().callDisplayChange(Display.DEFAULT_DISPLAY, mDisplayManager.getDisplay(Display.DEFAULT_DISPLAY).state)}
     }
 
     fun callSystemUIDisConnect(){
@@ -95,11 +95,91 @@ class UpdateMonitor private constructor(){
         }
     }
 
-    fun callSystemUIChange(type:Int, data:Bundle){
-        mHandler.post{
-            mList.forEach{
-                it.get()?.onSystemUIChange(type, data)
+    fun callBiometricChange(action:Int, data:Bundle){
+        val debug = false
+        val log = fun (any:String){ if(debug) Log.i(TAG, any)}
+        when(action){
+            BiometricConstant.TYPE_SHOW -> {
+                Log.w(TAG, "callBiometricChange TYPE_SHOW")
+                val bundle = data.getBundle("bundle")
+                val receiver = IBiometricServiceReceiverInternal.Stub.asInterface(data.getBinder("receiver"))
+                val type = data.getInt("type")
+                val requireConfirmation = data.getBoolean("requireConfirmation")
+                val userId = data.getBoolean("userId")
+                log("callBiometricChange TYPE_SHOW bundle=${bundle} receiver=${receiver} " +
+                        "type=${type} requireConfirmation=${requireConfirmation} userId=${userId}")
+                SystemBiometricMonitor.get().callShowBiometricView(bundle, receiver, type, requireConfirmation, userId)
             }
+            BiometricConstant.TYPE_HIDE -> {
+                log("callBiometricChange TYPE_HIDE")
+                SystemBiometricMonitor.get().callHideBiometricView()
+            }
+            BiometricConstant.TYPE_AUTHENTICATED ->{
+                val authenticated = data.getBoolean("authenticated")
+                val failureReason = data.getString("failureReason")
+                SystemBiometricMonitor.get().callBiometricAuthenticated(authenticated, failureReason)
+                log("callBiometricChange TYPE_AUTHENTICATED authenticated=${authenticated} failureReason=${failureReason}")
+
+            }
+            BiometricConstant.TYPE_HELP ->{
+                val message = data.getString("message")
+                log("callBiometricChange TYPE_HELP message=${message}")
+                SystemBiometricMonitor.get().callBiometricHelp(message)
+            }
+            BiometricConstant.TYPE_ERROR ->{
+                val error = data.getString("error")
+                log("callBiometricChange TYPE_ERROR error=${error}")
+                SystemBiometricMonitor.get().callBiometricError(error)
+            }
+            else -> {
+                if(data.containsKey("info")){
+                    data.getString("info")?.split("_")?.apply {
+                        when(get(0)){
+                            "startAuth" -> {
+                                val owner = if(size>1){get(1)}else{null}
+                                log("startAuth owner = ${owner}")
+                                NubiaBiometricMonitor.get().callStartAuth(owner)
+                            }
+                            "doneAuth" -> {
+                                log("doneAuth")
+                                NubiaBiometricMonitor.get().callDoneAuth()
+                            }
+                            "stopAuth" -> {
+                                log("stopAuth")
+                                NubiaBiometricMonitor.get().callStopAuth()
+                            }
+                            "autherror" -> {
+                                log("autherror")
+                                NubiaBiometricMonitor.get().callAuthError()
+                            }
+                            "failAuth" -> {
+                                log("failAuth")
+                                NubiaBiometricMonitor.get().callFailAuth()
+                            }
+                            else -> {
+                                val info = try {
+                                    get(0).toInt()
+                                }catch (e:NumberFormatException){
+                                    0
+                                }
+                                log("acquired info = ${info}")
+                                NubiaBiometricMonitor.get().callAcquired(info)
+                            }
+                        }
+                    }
+                }
+            }
+
+        }
+    }
+
+    var mOldFingerprintRelationState = 0
+    fun callFingerprintRelationStateChange(state:Int){
+        if(SystemUIStateConstant.isValidState(state)){
+            mOldFingerprintRelationState = state
+            Log.i(TAG, "fingerprint relation state change = ${SystemUIStateConstant.getStateString(state)}")
+        }else if(mOldFingerprintRelationState != state){
+            Log.w(TAG, "error fingerprint relation state = ${state}")
         }
     }
 
@@ -155,11 +235,16 @@ class UpdateMonitor private constructor(){
     }
 
     fun callFocusWindowChange(name: ComponentName) {
+
         mHandler.post{
             mList.forEach{
                 it.get()?.onFocusWindowChange(name)
             }
         }
+    }
+
+    fun callKeyboardChange(new:Int){
+        Log.e(TAG, "callKeyboardChange ${new}")
     }
 
     fun callStartActivity(name: ComponentName) {
@@ -174,14 +259,6 @@ class UpdateMonitor private constructor(){
         mHandler.post{
             mList.forEach{
                 it.get()?.onStopActivity(name)
-            }
-        }
-    }
-
-    fun callBiometricChange(type: Int, data: Bundle) {
-        mHandler.post{
-            mList.forEach{
-                it.get()?.onBiometricChange(type, data)
             }
         }
     }
@@ -243,16 +320,16 @@ class UpdateMonitor private constructor(){
     }
 
     companion object {
-        private val TAG = "${NubiaSystemUIApplication.TAG}.UpdateMonitor"
-        private  var mUpdateMonitor:UpdateMonitor? = null
+        private val TAG = "${NubiaSystemUIApplication.TAG}.Monitor"
+        private  var mUpdateMonitor:SystemUIUpdateMonitor? = null
             get(){
                 if (field == null){
-                    field = UpdateMonitor()
+                    field = SystemUIUpdateMonitor()
                 }
                 return field
             }
 
-        public fun get():UpdateMonitor{
+        public fun get():SystemUIUpdateMonitor{
             return mUpdateMonitor!!
         }
     }
