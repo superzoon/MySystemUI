@@ -177,15 +177,15 @@ class UpdateMonitor private constructor(){
         }
     }
 
-    var mOldFingerprintRelationState = 0
-    private fun callBiometricAttrFlagesChange(state:Int){
-        if(BiometricDiplayConstant.isValidState(state)){
-            if(mOldFingerprintRelationState != state){
-                mOldFingerprintRelationState = state
-                Log.i(TAG, "fingerprint relation state change = ${BiometricDiplayConstant.toString(state)}")
+    var mOldBiometricAttrFlages = 0
+    private fun callBiometricAttrFlagesChange(flages:Int){
+        if(BiometricDiplayConstant.isValidState(flages)){
+            if(mOldBiometricAttrFlages != flages){
+                mOldBiometricAttrFlages = flages
+                Log.i(TAG, "biometric attr flages change = ${BiometricDiplayConstant.toString(flages)}")
             }
         }else{
-            throw IllegalAccessError("error fingerprint relation state = ${state}")
+            throw IllegalAccessError("error biometric attr flages change, flages = ${flages}")
         }
     }
 

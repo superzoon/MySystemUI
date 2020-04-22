@@ -45,6 +45,7 @@ abstract class Controller(val mContext:Context):Dump {
     fun <T> getController(name:Class<T>) :T = Controller.getController(name)
 
     fun getContext()=mContext
+
     companion object {
         private val TAG = "${NubiaSystemUIApplication.TAG}.Controller"
         private val mMap = mutableMapOf<Class<*>, Controller>()

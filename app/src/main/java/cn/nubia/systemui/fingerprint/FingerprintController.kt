@@ -18,7 +18,8 @@ import cn.nubia.systemui.fingerprint.flow.FlowAction
 import java.io.FileDescriptor
 import java.io.PrintWriter
 
-class FingerprintController(mContext:Context):Controller(mContext), Dump{
+
+class FingerprintController(mContext:Context):Controller(mContext), Dump {
 
     companion object {
         val TAG = "${NubiaSystemUIApplication.TAG}.FingerprintController"
@@ -32,7 +33,7 @@ class FingerprintController(mContext:Context):Controller(mContext), Dump{
 
     private val mWindowController by lazy { getController(FingerprintWindowController::class.java) }
 
-    private val mFlowAction:Map<Int, MutableList<FlowAction>> = mapOf(
+    private val mFlowAction: Map<Int, MutableList<FlowAction>> = mapOf(
             KEY_FLOW_SCREEN_OFF to mutableListOf<FlowAction>(),
             KEY_FLOW_SCREEN_ON to mutableListOf<FlowAction>(),
             KEY_FLOW_SCREEN_AOD to mutableListOf<FlowAction>(),
@@ -40,18 +41,18 @@ class FingerprintController(mContext:Context):Controller(mContext), Dump{
     )
 
     private var isConnection = false
-    private var mSystemUI:SystemUI? = null
-    private var mDisplayState:Int = Display.STATE_UNKNOWN
-    private var mDisplayStateStr:String = "STATE_UNKNOWN"
+    private var mSystemUI: SystemUI? = null
+    private var mDisplayState: Int = Display.STATE_UNKNOWN
+    private var mDisplayStateStr: String = "STATE_UNKNOWN"
     private var mFlow: FingerprintFlow? = null
 
     private val mChoreographer by lazy {
-        if(Thread.currentThread()==mHandler.looper.thread){
+        if (Thread.currentThread() == mHandler.looper.thread) {
 
             Choreographer.getInstance()
-        }else{
+        } else {
 
-            ThreadHelper.get().synFingerprint(action = object :ThreadHelper.Action<Choreographer>{
+            ThreadHelper.get().synFingerprint(action = object : ThreadHelper.Action<Choreographer> {
                 override fun action(): Choreographer {
                     return Choreographer.getInstance()
                 }
@@ -59,65 +60,79 @@ class FingerprintController(mContext:Context):Controller(mContext), Dump{
         }
     }
 
-    private val mNubiaBiometricMonitor = object : NubiaBiometricMonitor.UpdateMonitorCallback{
+    private val mMonitor = object :
+            NubiaBiometricMonitor.UpdateMonitorCallback, UpdateMonitor.UpdateMonitorCallback,
+            FingerprintWindowController.Callback {
+        override fun onShow() {
+            mHandler.post {
+                this@FingerprintController.onIconShow()
+            }
+        }
+
+        override fun onHide() {
+            mHandler.post {
+                this@FingerprintController.onIconHide()
+            }
+        }
+
+        override fun onDown() {
+            mHandler.post {
+                this@FingerprintController.onFingerprintDown()
+            }
+        }
+
+        override fun onUp() {
+            mHandler.post {
+                this@FingerprintController.onFingerprintUp()
+            }
+        }
+
+        val DEBUG = false
+
+        fun log(msg: Any) {
+            if (DEBUG) Log.i(TAG, "${msg}")
+        }
+
         override fun onStartAuth(owner: String?) {
+            mHandler.post {
+                this@FingerprintController.onStartAuth(owner)
+            }
         }
 
         override fun onDoneAuth() {
+            mHandler.post {
+                this@FingerprintController.onDoneAuth()
+            }
         }
 
         override fun onStopAuth() {
+            mHandler.post {
+                this@FingerprintController.onStopAuth()
+            }
         }
 
         override fun onFailAuth() {
+            mHandler.post {
+                this@FingerprintController.onFailAuth()
+            }
         }
 
         override fun onAuthError() {
+            mHandler.post {
+                this@FingerprintController.onAuthError()
+            }
         }
 
         override fun onAcquired(info: Int) {
+            mHandler.post {
+                this@FingerprintController.onAcquired(info)
+            }
         }
 
-    }
-
-    private val mSystemBiometricMonitor = object : SystemBiometricMonitor.UpdateMonitorCallback{
-        val DEBUG = false
-
-        fun log(msg:Any){
-            if(DEBUG) Log.i(TAG,"${msg}")
-        }
-
-        override fun showBiometricView(bundle: Bundle?, receiver: IBiometricServiceReceiverInternal?, type: Int, requireConfirmation: Boolean, userId: Boolean){
-            log( "showBiometricView bundle=${bundle} receiver=${receiver} type=${type} requireConfirmation=${requireConfirmation} userId=${userId }")
-        }
-
-        override fun hideBiometricView(){
-            log( "hideBiometricView")
-        }
-
-        override fun onBiometricAuthenticated(authenticated: Boolean, failureReason: String?){
-            log( "onBiometricAuthenticated authenticated=${authenticated} failureReason=${failureReason}")
-        }
-
-        override fun onBiometricHelp(message: String?){
-            log( "onBiometricHelp message=${message}")
-        }
-
-        override fun onBiometricError(error: String?){
-            log( "onBiometricError error=${error}")
-        }
-    }
-
-    private val mCallback = object :UpdateMonitor.UpdateMonitorCallback {
-        val DEBUG = false
-
-        fun log(msg:Any){
-           if(DEBUG) Log.i(TAG,"${msg}")
-        }
 
         override fun onSystemUIDisConnect() {
             super.onSystemUIDisConnect()
-            mHandler.post{
+            mHandler.post {
                 this@FingerprintController.onSystemUIDisConnect()
             }
         }
@@ -125,28 +140,28 @@ class FingerprintController(mContext:Context):Controller(mContext), Dump{
         override fun onSystemUIConnect(systemui: SystemUI) {
             super.onSystemUIConnect(systemui)
             log("onSystemUIConnect systemui=${systemui}")
-            mHandler.post{
+            mHandler.post {
                 this@FingerprintController.onSystemUIConnect(systemui)
             }
         }
 
-        override fun onDisplayChange(displayId: Int, state: Int, stateStr:String) {
+        override fun onDisplayChange(displayId: Int, state: Int, stateStr: String) {
             super.onDisplayChange(displayId, state, stateStr)
-            log( "onDisplayChange displayId=${displayId} ${state} ${stateStr}")
-            mHandler.post{
+            log("onDisplayChange displayId=${displayId} ${state} ${stateStr}")
+            mHandler.post {
                 this@FingerprintController.onDisplayChange(displayId, state, stateStr)
             }
         }
 
-        override fun onFingerprintKeycode(keycode:Int){
-            log( "onFingerprintKeycode keycode=${keycode}")
+        override fun onFingerprintKeycode(keycode: Int) {
+            log("onFingerprintKeycode keycode=${keycode}")
         }
 
     }
 
     init {
-        UpdateMonitor.get().addCallback(mCallback)
-        NubiaBiometricMonitor.get().addCallback(mNubiaBiometricMonitor)
+        UpdateMonitor.get().addCallback(mMonitor)
+        NubiaBiometricMonitor.get().addCallback(mMonitor)
         SystemBiometricMonitor.get().addCallback(mSystemBiometricMonitor)
     }
 
@@ -154,14 +169,14 @@ class FingerprintController(mContext:Context):Controller(mContext), Dump{
         return mHandler
     }
 
-    private fun onDisplayChange(displayId: Int, state: Int, stateStr:String){
-        if(displayId == Display.DEFAULT_DISPLAY){
+    private fun onDisplayChange(displayId: Int, state: Int, stateStr: String) {
+        if (displayId == Display.DEFAULT_DISPLAY) {
             mDisplayState = state
             mDisplayStateStr = stateStr
         }
     }
 
-    private fun onSystemUIDisConnect(){
+    private fun onSystemUIDisConnect() {
         mSystemUI = null
         isConnection = false
     }
@@ -179,27 +194,91 @@ class FingerprintController(mContext:Context):Controller(mContext), Dump{
 
     }
 
-    fun onFingerprintDown(){
-        when(mDisplayState){
+    fun onFingerprintDown() {
+        when (mDisplayState) {
             Display.STATE_OFF -> {
                 mFlow = FingerprintFlow.ScreenOffFlow(this)
             }
             Display.STATE_ON -> {
                 mFlow = FingerprintFlow.ScreenOnFlow(this)
             }
-            Display.STATE_DOZE , Display.STATE_DOZE_SUSPEND -> {
+            Display.STATE_DOZE, Display.STATE_DOZE_SUSPEND -> {
                 mFlow = FingerprintFlow.ScreenAodFlow(this)
             }
-            else -> { mFlow = null }
+            else -> {
+                mFlow = null
+            }
         }
-        mFlow?.callDown()
+        mFlow?.callTouchDown()
     }
 
-    fun onFingerprintUp(){
-        mFlow?.callUp()
+    fun onFingerprintUp() {
+        mFlow?.callTouchUp()
     }
 
     override fun dump(fd: FileDescriptor?, writer: PrintWriter?, args: Array<out String>?) {
         mFlow?.dump(fd, writer, args)
     }
+
+    private fun onIconShow() {
+        mFlow?.onIconShow()
+    }
+
+    private fun onIconHide() {
+        mFlow?.onIconHide()
+    }
+
+    private fun onStartAuth(owner: String?) {
+        mFlow?.onStartAuth(owner)
+    }
+
+    private fun onDoneAuth() {
+        mFlow?.onDoneAuth()
+    }
+
+    private fun onAcquired(info: Int) {
+        mFlow?.onAcquired(info)
+    }
+
+    private fun onAuthError() {
+        mFlow?.onAuthError()
+    }
+
+    private fun onFailAuth() {
+        mFlow?.onFailAuth()
+    }
+
+    private fun onStopAuth() {
+        mFlow?.onStopAuth()
+    }
+
 }
+private val mSystemBiometricMonitor = object : SystemBiometricMonitor.UpdateMonitorCallback{
+    val DEBUG = false
+
+    fun log(msg:Any){
+        if(DEBUG) Log.i(FingerprintController.TAG,"${msg}")
+    }
+
+    override fun showBiometricView(bundle: Bundle?, receiver: IBiometricServiceReceiverInternal?, type: Int, requireConfirmation: Boolean, userId: Boolean){
+        log( "showBiometricView bundle=${bundle} receiver=${receiver} type=${type} requireConfirmation=${requireConfirmation} userId=${userId }")
+    }
+
+    override fun hideBiometricView(){
+        log( "hideBiometricView")
+    }
+
+    override fun onBiometricAuthenticated(authenticated: Boolean, failureReason: String?){
+        log( "onBiometricAuthenticated authenticated=${authenticated} failureReason=${failureReason}")
+    }
+
+    override fun onBiometricHelp(message: String?){
+        log( "onBiometricHelp message=${message}")
+    }
+
+    override fun onBiometricError(error: String?){
+        log( "onBiometricError error=${error}")
+    }
+}
+
+

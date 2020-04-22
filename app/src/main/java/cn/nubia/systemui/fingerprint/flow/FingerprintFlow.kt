@@ -10,61 +10,96 @@ abstract class  FingerprintFlow(val mController:FingerprintController):Dump{
     enum class FlowState{
         NORMAL, DOWN, UI_READY, UP
     }
-    fun callDown(){
-        when(getState()){
-            FlowState.NORMAL, FlowState.UP -> {onDown()}
-            else -> {Log.i(TAG, "ERROR down, mState=${getState()}")}
+    fun callTouchDown(){
+        when(mState){
+            FlowState.NORMAL, FlowState.UP -> {onTouchDown()}
+            else -> {Log.i(TAG, "ERROR down, mState=${mState}")}
         }
     }
-    abstract fun onDown()
 
     fun callUiReady(){
-        when(getState()){
+        when(mState){
             FlowState.DOWN -> {onUiReady()}
-            else -> {Log.i(TAG, "ERROR uiready, mState=${getState()}")}
+            else -> {Log.i(TAG, "ERROR uiready, mState=${mState}")}
         }
     }
-    abstract fun onUiReady()
-    fun callUp(){
-        when(getState()){
-            FlowState.UI_READY -> {onUp()}
-            else -> {Log.i(TAG, "ERROR up, mState=${getState()}")}
+    fun callTouchUp(){
+        when(mState){
+            FlowState.UI_READY -> {onTouchUp()}
+            else -> {Log.i(TAG, "ERROR up, mState=${mState}")}
         }
     }
-    abstract fun onUp()
 
     private var mState: FlowState = FlowState.NORMAL
-    fun getState() = mState
+        get() = field
+        set(value) {
+            if(field!=value){
+                Log.i(TAG, "flow state change")
+                field=value
+            }
+        }
+    fun onTouchDown(){
+        when(mState){
+            FlowState.NORMAL -> {
+                mState = FlowState.DOWN
+            }
+            FlowState.DOWN -> {
+
+            }
+            FlowState.UI_READY -> {
+            }
+            FlowState.UP -> {
+
+            }
+        }
+    }
+
+    fun onUiReady(){
+        when(mState){
+            FlowState.NORMAL -> {
+
+            }
+            FlowState.DOWN -> {
+                mState = FlowState.UI_READY
+            }
+            FlowState.UI_READY -> {
+            }
+            FlowState.UP -> {
+
+            }
+        }
+    }
+    fun onTouchUp(){
+        when(mState){
+            FlowState.NORMAL -> {
+
+            }
+            FlowState.DOWN -> {
+
+            }
+            FlowState.UI_READY -> {
+                mState = FlowState.UP
+            }
+            FlowState.UP -> {
+
+            }
+        }
+    }
+
+    fun onIconShow() {}
+    fun onIconHide() {}
+    fun onStartAuth(owner: String?) { }
+    fun onDoneAuth() { }
+    fun onAcquired(info: Int) { }
+    fun onAuthError() { }
+    fun onFailAuth() { }
+    fun onStopAuth() { }
 
     class ScreenOnFlow(mController:FingerprintController): FingerprintFlow(mController) {
-        override fun onDown() {
-        }
-
-        override fun onUiReady() {
-        }
-
-        override fun onUp() {
-        }
     }
 
     class ScreenOffFlow(mController:FingerprintController): FingerprintFlow(mController) {
-        override fun onDown() {
-        }
-
-        override fun onUiReady() {
-        }
-
-        override fun onUp() {
-        }
     }
     class ScreenAodFlow(mController:FingerprintController): FingerprintFlow(mController) {
-        override fun onDown() {
-        }
-
-        override fun onUiReady() {
-        }
-
-        override fun onUp() {
-        }
     }
 }

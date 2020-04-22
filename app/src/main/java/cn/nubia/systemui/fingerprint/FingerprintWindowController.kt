@@ -15,13 +15,26 @@ import cn.nubia.systemui.fingerprint.view.BaseSurfaceHolder
 
 class FingerprintWindowController(mContext: Context):Controller(mContext){
 
+    val mHandler = ThreadHelper.get().getFingerHander()
+    val mFingerprintController by lazy { getController(FingerprintController::class.java) }
+    val mSurfaceView by lazy { SurfaceViewWindow(mContext) }
+
+    interface Callback{
+        fun onShow()
+        fun onHide()
+        fun onDown()
+        fun onUp()
+    }
     companion object {
         val TAG = "${NubiaSystemUIApplication.TAG}.WindowControl"
     }
 
-    val mHandler = ThreadHelper.get().getFingerHander()
-    val mFingerprintController by lazy { getController(FingerprintController::class.java) }
-    val mSurfaceView by lazy { SurfaceViewWindow(mContext) }
+    var mCallback:Callback? = null
+        set(value) {
+            Log.i(TAG, "set callback")
+            field = value
+        }
+
 
     override fun getHandler(): Handler {
         return mHandler
