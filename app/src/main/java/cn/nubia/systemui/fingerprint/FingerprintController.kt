@@ -44,6 +44,7 @@ class FingerprintController(mContext:Context):Controller(mContext), Dump {
     private var mSystemUI: SystemUI? = null
     private var mDisplayState: Int = Display.STATE_UNKNOWN
     private var mDisplayStateStr: String = "STATE_UNKNOWN"
+    private var mOldFlow: FingerprintFlow? = null
     private var mFlow: FingerprintFlow? = null
 
     private val mChoreographer by lazy {
@@ -60,9 +61,8 @@ class FingerprintController(mContext:Context):Controller(mContext), Dump {
         }
     }
 
-    private val mMonitor = object :
-            NubiaBiometricMonitor.UpdateMonitorCallback, UpdateMonitor.UpdateMonitorCallback,
-            FingerprintWindowController.Callback {
+    private val mMonitor = object : NubiaBiometricMonitor.UpdateMonitorCallback,
+            UpdateMonitor.UpdateMonitorCallback, FingerprintWindowController.Callback {
         override fun onShow() {
             mHandler.post {
                 this@FingerprintController.onIconShow()
@@ -159,12 +159,6 @@ class FingerprintController(mContext:Context):Controller(mContext), Dump {
 
     }
 
-    init {
-        UpdateMonitor.get().addCallback(mMonitor)
-        NubiaBiometricMonitor.get().addCallback(mMonitor)
-        SystemBiometricMonitor.get().addCallback(mSystemBiometricMonitor)
-    }
-
     override fun getHandler(): Handler {
         return mHandler
     }
@@ -187,11 +181,15 @@ class FingerprintController(mContext:Context):Controller(mContext), Dump {
     }
 
     override fun onStart(service: NubiaSystemUIService) {
-
+        UpdateMonitor.get().addCallback(mMonitor)
+        NubiaBiometricMonitor.get().addCallback(mMonitor)
+        SystemBiometricMonitor.get().addCallback(mSystemBiometricMonitor)
     }
 
     override fun onStop(service: NubiaSystemUIService) {
-
+        UpdateMonitor.get().removeCallback(mMonitor)
+        NubiaBiometricMonitor.get().removeCallback(mMonitor)
+        SystemBiometricMonitor.get().removeCallback(mSystemBiometricMonitor)
     }
 
     fun onFingerprintDown() {
@@ -209,14 +207,17 @@ class FingerprintController(mContext:Context):Controller(mContext), Dump {
                 mFlow = null
             }
         }
-        mFlow?.callTouchDown()
+        mFlow?.onTouchDown()
     }
 
     fun onFingerprintUp() {
-        mFlow?.callTouchUp()
+        mFlow?.onTouchUp()
+        mOldFlow = mFlow
+        mFlow = null
     }
 
     override fun dump(fd: FileDescriptor?, writer: PrintWriter?, args: Array<out String>?) {
+        mOldFlow?.dump(fd, writer, args)
         mFlow?.dump(fd, writer, args)
     }
 
@@ -253,6 +254,7 @@ class FingerprintController(mContext:Context):Controller(mContext), Dump {
     }
 
 }
+
 private val mSystemBiometricMonitor = object : SystemBiometricMonitor.UpdateMonitorCallback{
     val DEBUG = false
 

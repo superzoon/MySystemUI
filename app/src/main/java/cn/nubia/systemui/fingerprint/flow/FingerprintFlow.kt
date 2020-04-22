@@ -10,25 +10,6 @@ abstract class  FingerprintFlow(val mController:FingerprintController):Dump{
     enum class FlowState{
         NORMAL, DOWN, UI_READY, UP
     }
-    fun callTouchDown(){
-        when(mState){
-            FlowState.NORMAL, FlowState.UP -> {onTouchDown()}
-            else -> {Log.i(TAG, "ERROR down, mState=${mState}")}
-        }
-    }
-
-    fun callUiReady(){
-        when(mState){
-            FlowState.DOWN -> {onUiReady()}
-            else -> {Log.i(TAG, "ERROR uiready, mState=${mState}")}
-        }
-    }
-    fun callTouchUp(){
-        when(mState){
-            FlowState.UI_READY -> {onTouchUp()}
-            else -> {Log.i(TAG, "ERROR up, mState=${mState}")}
-        }
-    }
 
     private var mState: FlowState = FlowState.NORMAL
         get() = field
