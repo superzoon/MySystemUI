@@ -2,38 +2,7 @@ package cn.nubia.systemui.common
 
 class BiometricDiplayConstant{
     companion object {
-        val TYPE_NORMAL = 1 shl 0
-        val TYPE_NORMAL_MASK = 0
-                .or(SystemUIStateConstant.STATE_AUTHENTICATED)
-                .or(SystemUIStateConstant.STATE_SUPERSNAP_VIEW)
-                .or(SystemUIStateConstant.STATE_SLIDE_NAVI)
-                .or(SystemUIStateConstant.STATE_STRONG_AUTH)
-                .or(SystemUIStateConstant.STATE_EXPANDED)
-                .or(SystemUIStateConstant.STATE_SHUTDOWN_SHOW)
-                .or(SystemUIStateConstant.STATE_STRONG_AUTH)
-                .or(SystemUIStateConstant.STATE_INPUT_METHOD)
 
-        val TYPE_AOD = 1 shl 1
-        val TYPE_AOD_MASK = 0
-                .or(SystemUIStateConstant.STATE_AUTHENTICATED)
-                .or(SystemUIStateConstant.STATE_AOD_UI)
-                .or(SystemUIStateConstant.STATE_SUPERSNAP_VIEW)
-
-        val TYPE_KEYGUARD = 1 shl 2
-        val TYPE_KEYGUARD_MASK = 0
-                .or(SystemUIStateConstant.STATE_AUTHENTICATED)
-                .or(SystemUIStateConstant.STATE_QS_EXPANDED)
-                .or(SystemUIStateConstant.STATE_SUPERSNAP_VIEW)
-                .or(SystemUIStateConstant.STATE_SLIDE_CAMERA)
-                .or(SystemUIStateConstant.STATE_SLIDE_NAVI)
-                .or(SystemUIStateConstant.STATE_SHUTDOWN_SHOW)
-                .or(SystemUIStateConstant.STATE_STRONG_AUTH)
-                .or(SystemUIStateConstant.STATE_INPUT_METHOD)
-                .or(SystemUIStateConstant.STATE_UK_OCCLUDED)
-    }
-}
-class SystemUIStateConstant{
-    companion object {
         //启动指纹识别
         val STATE_AUTHENTICATED = 1 shl 0
         //非锁屏状态栏下拉
@@ -77,7 +46,46 @@ class SystemUIStateConstant{
         fun hasInputMethod(flags: Int) = (flags and STATE_INPUT_METHOD)!=0
         fun hasUkOccluded(flags: Int) = (flags and STATE_UK_OCCLUDED)!=0
 
-        fun getStateString(flags:Int):String{
+        val TYPE_NORMAL = 1 shl 0
+        val TYPE_NORMAL_MASK = 0
+                .or(STATE_AUTHENTICATED)
+                .or(STATE_SUPERSNAP_VIEW)
+                .or(STATE_SLIDE_NAVI)
+                .or(STATE_STRONG_AUTH)
+                .or(STATE_EXPANDED)
+                .or(STATE_SHUTDOWN_SHOW)
+                .or(STATE_STRONG_AUTH)
+                .or(STATE_INPUT_METHOD)
+
+        val TYPE_AOD = 1 shl 1
+        val TYPE_AOD_MASK = 0
+                .or(STATE_AUTHENTICATED)
+                .or(STATE_AOD_UI)
+                .or(STATE_SUPERSNAP_VIEW)
+
+        val TYPE_KEYGUARD = 1 shl 2
+        val TYPE_KEYGUARD_MASK = 0
+                .or(STATE_AUTHENTICATED)
+                .or(STATE_QS_EXPANDED)
+                .or(STATE_SUPERSNAP_VIEW)
+                .or(STATE_SLIDE_CAMERA)
+                .or(STATE_SLIDE_NAVI)
+                .or(STATE_SHUTDOWN_SHOW)
+                .or(STATE_STRONG_AUTH)
+                .or(STATE_INPUT_METHOD)
+                .or(STATE_UK_OCCLUDED)
+
+        fun canShowFingerprint(type:Int, state:Int):Boolean{
+            val auth = when(type){
+                TYPE_NORMAL ->  state and TYPE_NORMAL_MASK
+                TYPE_AOD -> state and TYPE_AOD_MASK
+                TYPE_KEYGUARD -> state and TYPE_KEYGUARD_MASK
+                else -> throw IllegalAccessError("type=${type} is error")
+            }
+            return auth == STATE_AUTHENTICATED
+        }
+
+        fun toString(flags:Int):String{
             if(flags==0){
                 return "UnAuth"
             }else{
@@ -124,6 +132,11 @@ class SystemUIStateConstant{
                 return build.toString().trim()
             }
         }
+
+    }
+}
+class SystemUIStateConstant{
+    companion object {
     }
 }
 class BiometricConstant{
@@ -133,5 +146,6 @@ class BiometricConstant{
         val TYPE_AUTHENTICATED = 3
         val TYPE_HELP = 4
         val TYPE_ERROR = 5
+        val TYPE_ATTR_FLAGES = 6
     }
 }

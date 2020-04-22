@@ -131,6 +131,10 @@ class UpdateMonitor private constructor(){
                 log("callBiometricChange TYPE_ERROR error=${error}")
                 SystemBiometricMonitor.get().callBiometricError(error)
             }
+            BiometricConstant.TYPE_ATTR_FLAGES->{
+                val flags = data.getInt("flags")
+                callBiometricAttrFlagesChange(flags)
+            }
             else -> {
                 if(data.containsKey("info")){
                     data.getString("info")?.split("_")?.apply {
@@ -174,12 +178,14 @@ class UpdateMonitor private constructor(){
     }
 
     var mOldFingerprintRelationState = 0
-    fun callFingerprintRelationStateChange(state:Int){
-        if(SystemUIStateConstant.isValidState(state)){
-            mOldFingerprintRelationState = state
-            Log.i(TAG, "fingerprint relation state change = ${SystemUIStateConstant.getStateString(state)}")
-        }else if(mOldFingerprintRelationState != state){
-            Log.w(TAG, "error fingerprint relation state = ${state}")
+    private fun callBiometricAttrFlagesChange(state:Int){
+        if(BiometricDiplayConstant.isValidState(state)){
+            if(mOldFingerprintRelationState != state){
+                mOldFingerprintRelationState = state
+                Log.i(TAG, "fingerprint relation state change = ${BiometricDiplayConstant.toString(state)}")
+            }
+        }else{
+            throw IllegalAccessError("error fingerprint relation state = ${state}")
         }
     }
 
