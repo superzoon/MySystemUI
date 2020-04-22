@@ -19,7 +19,7 @@ import java.lang.NumberFormatException
 import java.lang.ref.Reference
 import java.lang.ref.WeakReference
 
-class SystemUIUpdateMonitor private constructor(){
+class UpdateMonitor private constructor(){
     private val mHandler = Handler(Looper.getMainLooper());
     private val mList = mutableListOf<Reference<UpdateMonitorCallback>>()
     private val mDisplayStateMap = mutableMapOf<Int, Int>()
@@ -72,7 +72,7 @@ class SystemUIUpdateMonitor private constructor(){
         override fun onDisplayChanged(displayId: Int) {
             if(displayId==Display.DEFAULT_DISPLAY || mDisplayIds.contains(displayId)){
                 mDisplayManager.getDisplay(displayId)?.state.also {
-                    SystemUIUpdateMonitor.get().callDisplayChange(displayId, it!!)
+                    UpdateMonitor.get().callDisplayChange(displayId, it!!)
                 }
             }
         }
@@ -83,7 +83,7 @@ class SystemUIUpdateMonitor private constructor(){
         mContext.registerReceiver(mInternalObj, filter)
         mDisplayManager.registerDisplayListener(mInternalObj, ThreadHelper.get().getMainHander())
         mTelephonyManager.listen(mPhoneStateListener, PhoneStateListener.LISTEN_CALL_STATE)
-        mHandler.post{SystemUIUpdateMonitor.get().callDisplayChange(Display.DEFAULT_DISPLAY, mDisplayManager.getDisplay(Display.DEFAULT_DISPLAY).state)}
+        mHandler.post{UpdateMonitor.get().callDisplayChange(Display.DEFAULT_DISPLAY, mDisplayManager.getDisplay(Display.DEFAULT_DISPLAY).state)}
     }
 
     fun callSystemUIDisConnect(){
@@ -321,15 +321,15 @@ class SystemUIUpdateMonitor private constructor(){
 
     companion object {
         private val TAG = "${NubiaSystemUIApplication.TAG}.Monitor"
-        private  var mUpdateMonitor:SystemUIUpdateMonitor? = null
+        private  var mUpdateMonitor:UpdateMonitor? = null
             get(){
                 if (field == null){
-                    field = SystemUIUpdateMonitor()
+                    field = UpdateMonitor()
                 }
                 return field
             }
 
-        public fun get():SystemUIUpdateMonitor{
+        public fun get():UpdateMonitor{
             return mUpdateMonitor!!
         }
     }

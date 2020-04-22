@@ -8,7 +8,7 @@ import android.util.Log
 import cn.nubia.systemui.aidl.INubiaSystemUI;
 import cn.nubia.systemui.common.SystemUI
 import cn.nubia.systemui.common.Controller
-import cn.nubia.systemui.common.SystemUIUpdateMonitor
+import cn.nubia.systemui.common.UpdateMonitor
 import java.io.FileDescriptor
 import java.io.PrintWriter
 
@@ -60,57 +60,57 @@ class NubiaSystemUIService:Service(){
 
     inner class NubiaSystemUI:INubiaSystemUI.Stub(), IBinder.DeathRecipient {
         override fun onFocusWindowChange(name: ComponentName) {
-            SystemUIUpdateMonitor.get().callFocusWindowChange(name)
+            UpdateMonitor.get().callFocusWindowChange(name)
         }
 
         override fun onStartActivity(name: ComponentName) {
-            SystemUIUpdateMonitor.get().callStartActivity(name)
+            UpdateMonitor.get().callStartActivity(name)
         }
 
         override fun onStopActivity(name: ComponentName) {
-            SystemUIUpdateMonitor.get().callStopActivity(name)
+            UpdateMonitor.get().callStopActivity(name)
         }
 
         override fun onBiometricChange(type: Int, data: Bundle) {
-            SystemUIUpdateMonitor.get().callBiometricChange(type, data)
+            UpdateMonitor.get().callBiometricChange(type, data)
         }
 
         override fun onAodViewChange(show: Boolean) {
-            SystemUIUpdateMonitor.get().callAodViewChange(show)
+            UpdateMonitor.get().callAodViewChange(show)
         }
 
         override fun onKeyguardChange(show: Boolean, occluded: Boolean) {
-            SystemUIUpdateMonitor.get().callKeyguardChange(show, occluded)
+            UpdateMonitor.get().callKeyguardChange(show, occluded)
         }
 
         override fun onStartWakingUp() {
-            SystemUIUpdateMonitor.get().callStartWakingUp()
+            UpdateMonitor.get().callStartWakingUp()
         }
 
         override fun onFinishedWakingUp() {
-            SystemUIUpdateMonitor.get().callFinishedWakingUp()
+            UpdateMonitor.get().callFinishedWakingUp()
         }
 
         override fun onStartGoingToSleep(reason: Int) {
-            SystemUIUpdateMonitor.get().callStartGoingToSleep(reason)
+            UpdateMonitor.get().callStartGoingToSleep(reason)
         }
 
         override fun onFinishedGoingToSleep() {
-            SystemUIUpdateMonitor.get().callFinishedGoingToSleep()
+            UpdateMonitor.get().callFinishedGoingToSleep()
         }
 
         override fun onFingerprintKeycode(keycode: Int) {
-            SystemUIUpdateMonitor.get().callFingerprintKeycode(keycode)
+            UpdateMonitor.get().callFingerprintKeycode(keycode)
         }
 
         override fun binderDied() {
-            SystemUIUpdateMonitor.get().callSystemUIDisConnect()
+            UpdateMonitor.get().callSystemUIDisConnect()
         }
 
         override fun onConnect(systemui: IBinder) {
             systemui.linkToDeath(this, 0)
             mSystemUI = SystemUI(systemui)
-            SystemUIUpdateMonitor.get().callSystemUIConnect(mSystemUI!!)
+            UpdateMonitor.get().callSystemUIConnect(mSystemUI!!)
         }
 
         override fun callNubiaSystemUI(type: Int, data: Bundle) {

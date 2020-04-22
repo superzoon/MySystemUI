@@ -12,7 +12,7 @@ import cn.nubia.systemui.NubiaSystemUIService
 import cn.nubia.systemui.common.SystemUI
 import cn.nubia.systemui.common.Controller
 import cn.nubia.systemui.common.Dump
-import cn.nubia.systemui.common.SystemUIUpdateMonitor
+import cn.nubia.systemui.common.UpdateMonitor
 import cn.nubia.systemui.fingerprint.flow.FingerprintFlow
 import cn.nubia.systemui.fingerprint.flow.FlowAction
 import java.io.FileDescriptor
@@ -108,7 +108,7 @@ class FingerprintController(mContext:Context):Controller(mContext), Dump{
         }
     }
 
-    private val mCallback = object :SystemUIUpdateMonitor.UpdateMonitorCallback {
+    private val mCallback = object :UpdateMonitor.UpdateMonitorCallback {
         val DEBUG = false
 
         fun log(msg:Any){
@@ -145,7 +145,7 @@ class FingerprintController(mContext:Context):Controller(mContext), Dump{
     }
 
     init {
-        SystemUIUpdateMonitor.get().addCallback(mCallback)
+        UpdateMonitor.get().addCallback(mCallback)
         NubiaBiometricMonitor.get().addCallback(mNubiaBiometricMonitor)
         SystemBiometricMonitor.get().addCallback(mSystemBiometricMonitor)
     }

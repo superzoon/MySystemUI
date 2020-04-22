@@ -5,7 +5,7 @@ import android.content.Context
 import android.content.res.Configuration
 import android.util.Log
 import cn.nubia.systemui.common.Controller
-import cn.nubia.systemui.common.SystemUIUpdateMonitor
+import cn.nubia.systemui.common.UpdateMonitor
 
 class NubiaSystemUIApplication: Application() {
     init {
@@ -35,7 +35,7 @@ class NubiaSystemUIApplication: Application() {
         if(resources.configuration.hardKeyboardHidden!=mHardKeyboardHidden){
             mHardKeyboardHidden = resources.configuration.hardKeyboardHidden
             Log.e(TAG, "onCreate keyboard=${resources.configuration.keyboard} hardKeyboardHidden=${resources.configuration.keyboardHidden} keyboardHidden=${resources.configuration.keyboardHidden}")
-            SystemUIUpdateMonitor.get().callKeyboardChange(resources.configuration.hardKeyboardHidden)
+            UpdateMonitor.get().callKeyboardChange(resources.configuration.hardKeyboardHidden)
         }
     }
 
