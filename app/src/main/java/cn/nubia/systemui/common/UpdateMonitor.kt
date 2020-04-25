@@ -182,7 +182,7 @@ class UpdateMonitor private constructor(){
         if(BiometricDiplayConstant.isValidState(flages)){
             if(mOldBiometricAttrFlages != flages){
                 mOldBiometricAttrFlages = flages
-                Log.i(TAG, "biometric attr flages change = ${BiometricDiplayConstant.toString(flages)}")
+                Log.i(TAG, "biometric attr flages change = ${BiometricDiplayConstant.flagsToString(flages)}")
             }
         }else{
             throw IllegalAccessError("error biometric attr flages change, flages = ${flages}")

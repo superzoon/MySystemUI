@@ -3,12 +3,13 @@ package cn.nubia.systemui
 import android.app.Service
 import android.content.*
 import android.content.res.Configuration
+import android.hardware.biometrics.IBiometricServiceReceiverInternal
 import android.os.*
 import android.util.Log
 import cn.nubia.systemui.aidl.INubiaSystemUI;
-import cn.nubia.systemui.common.SystemUI
-import cn.nubia.systemui.common.Controller
-import cn.nubia.systemui.common.UpdateMonitor
+import cn.nubia.systemui.common.*
+import cn.nubia.systemui.fingerprint.FingerprintController
+import cn.nubia.systemui.fingerprint.SystemBiometricMonitor
 import java.io.FileDescriptor
 import java.io.PrintWriter
 
@@ -17,7 +18,7 @@ class NubiaSystemUIService:Service(){
         val TAG = "${NubiaSystemUIApplication.TAG}.Service"
     }
 
-    val mNubiaSystemUI by lazy { NubiaSystemUI() }
+    private val mNubiaSystemUI by lazy { NubiaSystemUI() }
     private var mSystemUI:SystemUI? = null
     private val mHandler = Handler(Looper.getMainLooper(),object:Handler.Callback{
         override fun handleMessage(msg: Message): Boolean {
@@ -28,15 +29,23 @@ class NubiaSystemUIService:Service(){
         }
     })
 
-    fun call(type: Int, data: Bundle) {
+    operator fun contains(value:Int):Boolean{
+        return mNubiaSystemUI!=null
+    }
+
+    fun onCall(type: Int, data: Bundle) {
         Log.e(TAG, "call type=${type} data=${data}")
+        when(type){
+            SystemUIStateConstant.TYPE_TEST ->{}
+            in this ->{}
+            else -> {}
+        }
     }
 
     override fun onCreate() {
         super.onCreate()
         Controller.forEach { it.callStart(this) }
-        val newConfig: Configuration = resources.configuration
-        Log.e(TAG, "onCreate keyboard=${newConfig.keyboard} hardKeyboardHidden=${newConfig.keyboardHidden} keyboardHidden=${newConfig.keyboardHidden}")
+        SystemBiometricMonitor.get().addCallback(mSystemBiometricMonitor)
     }
 
     override fun onTrimMemory(level: Int) {
@@ -46,12 +55,13 @@ class NubiaSystemUIService:Service(){
 
     override fun dump(fd: FileDescriptor?, writer: PrintWriter?, args: Array<out String>?) {
         super.dump(fd, writer, args)
-        Controller.forEach { it.dump(fd, writer, args) }
+        Dump.dipatchDump(fd, writer, args)
     }
 
     override fun onDestroy() {
         super.onDestroy()
         Controller.forEach { it.callStop(this) }
+        SystemBiometricMonitor.get().removeCallback(mSystemBiometricMonitor)
     }
 
     override fun onBind(intent: Intent?): IBinder {
@@ -114,7 +124,36 @@ class NubiaSystemUIService:Service(){
         }
 
         override fun callNubiaSystemUI(type: Int, data: Bundle) {
-            call(type, data)
+            onCall(type, data)
+        }
+    }
+
+
+    private val mSystemBiometricMonitor = object : SystemBiometricMonitor.UpdateMonitorCallback{
+        val DEBUG = false
+
+        fun log(msg:Any){
+            if(DEBUG) Log.i(FingerprintController.TAG,"${msg}")
+        }
+
+        override fun showBiometricView(bundle: Bundle?, receiver: IBiometricServiceReceiverInternal?, type: Int, requireConfirmation: Boolean, userId: Boolean){
+            log( "showBiometricView bundle=${bundle} receiver=${receiver} type=${type} requireConfirmation=${requireConfirmation} userId=${userId }")
+        }
+
+        override fun hideBiometricView(){
+            log( "hideBiometricView")
+        }
+
+        override fun onBiometricAuthenticated(authenticated: Boolean, failureReason: String?){
+            log( "onBiometricAuthenticated authenticated=${authenticated} failureReason=${failureReason}")
+        }
+
+        override fun onBiometricHelp(message: String?){
+            log( "onBiometricHelp message=${message}")
+        }
+
+        override fun onBiometricError(error: String?){
+            log( "onBiometricError error=${error}")
         }
     }
 }

@@ -11,6 +11,7 @@ import cn.nubia.systemui.NubiaSystemUIApplication
 import cn.nubia.systemui.NubiaSystemUIService
 import cn.nubia.systemui.fingerprint.FingerprintController
 import cn.nubia.systemui.fingerprint.FingerprintWindowController
+import cn.nubia.systemui.fingerprint.ThreadHelper
 import java.io.FileDescriptor
 import java.io.PrintWriter
 
@@ -22,10 +23,12 @@ abstract class Controller(val mContext:Context):Dump {
     protected fun onTrimMemory(level: Int){}
 
     fun callStart(service:NubiaSystemUIService){
+        registerDump()
         getHandler().post{onStart(service)}
     }
 
     fun callStop(service:NubiaSystemUIService){
+        unregisterDump()
         getHandler().post{onStop(service)}
     }
 
@@ -42,21 +45,24 @@ abstract class Controller(val mContext:Context):Dump {
         Log.i(TAG, "dump ${fd}.${writer}.${args}")
     }
 
-    fun <T> getController(name:Class<T>) :T = Controller.getController(name)
+    fun <T:Controller> getController(name:Class<T>) :T = Controller.getController(name)
 
     fun getContext()=mContext
 
     companion object {
         private val TAG = "${NubiaSystemUIApplication.TAG}.Controller"
         private val mMap = mutableMapOf<Class<*>, Controller>()
-
         fun forEach(action: (Controller) -> Unit) =mMap.values.forEach{ action.invoke(it) }
 
         fun init(context:NubiaSystemUIApplication){
-            mMap.put(FingerprintController::class.java, FingerprintController(context))
-            mMap.put(FingerprintWindowController::class.java, FingerprintWindowController(context))
+            mMap[FingerprintController::class.java] = FingerprintController(context)
+            mMap[FingerprintWindowController::class.java] = FingerprintWindowController(context)
         }
 
-        fun <T> getController(name:Class<T>):T =  mMap.get(name)!! as T
+        fun <T:Controller> getController(name:Class<T>):T =  if(mMap.containsKey(name)){
+            mMap[name] as T
+        }else{
+            throw IncompatibleClassChangeError("not find ${name}")
+        }
     }
 }

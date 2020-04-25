@@ -2,7 +2,8 @@ package cn.nubia.systemui.common
 
 class BiometricDiplayConstant{
     companion object {
-
+        //无状态
+        val STATE_NORMAL = 0
         //启动指纹识别
         val STATE_AUTHENTICATED = 1 shl 0
         //非锁屏状态栏下拉
@@ -47,7 +48,7 @@ class BiometricDiplayConstant{
         fun hasUkOccluded(flags: Int) = (flags and STATE_UK_OCCLUDED)!=0
 
         val TYPE_NORMAL = 1 shl 0
-        val TYPE_NORMAL_MASK = 0
+        val TYPE_NORMAL_MASK = STATE_NORMAL
                 .or(STATE_AUTHENTICATED)
                 .or(STATE_SUPERSNAP_VIEW)
                 .or(STATE_SLIDE_NAVI)
@@ -58,13 +59,13 @@ class BiometricDiplayConstant{
                 .or(STATE_INPUT_METHOD)
 
         val TYPE_AOD = 1 shl 1
-        val TYPE_AOD_MASK = 0
+        val TYPE_AOD_MASK = STATE_NORMAL
                 .or(STATE_AUTHENTICATED)
                 .or(STATE_AOD_UI)
                 .or(STATE_SUPERSNAP_VIEW)
 
         val TYPE_KEYGUARD = 1 shl 2
-        val TYPE_KEYGUARD_MASK = 0
+        val TYPE_KEYGUARD_MASK = STATE_NORMAL
                 .or(STATE_AUTHENTICATED)
                 .or(STATE_QS_EXPANDED)
                 .or(STATE_SUPERSNAP_VIEW)
@@ -85,7 +86,7 @@ class BiometricDiplayConstant{
             return auth == STATE_AUTHENTICATED
         }
 
-        fun toString(flags:Int):String{
+        fun flagsToString(flags:Int):String{
             if(flags==0){
                 return "UnAuth"
             }else{
@@ -135,10 +136,6 @@ class BiometricDiplayConstant{
 
     }
 }
-class SystemUIStateConstant{
-    companion object {
-    }
-}
 class BiometricConstant{
     companion object {
         val TYPE_SHOW = 1
@@ -147,5 +144,10 @@ class BiometricConstant{
         val TYPE_HELP = 4
         val TYPE_ERROR = 5
         val TYPE_ATTR_FLAGES = 6
+    }
+}
+class SystemUIStateConstant{
+    companion object {
+        val TYPE_TEST = 1
     }
 }

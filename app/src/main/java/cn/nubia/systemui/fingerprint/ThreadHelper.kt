@@ -7,15 +7,13 @@ import android.os.Process
 import java.util.*
 import java.util.concurrent.LinkedBlockingQueue
 
+@Suppress("UNCHECKED_CAST")
 class ThreadHelper private constructor(){
-
-    interface Action<T>{
-        fun action():T;
-    }
 
     val mQueueList = LinkedList<Queue<Any>>()
 
     private val mMainHandler:Handler by lazy {
+
         Handler(Looper.getMainLooper())
     }
 
@@ -79,29 +77,57 @@ class ThreadHelper private constructor(){
         }
     }
 
-    fun <T> synBackground(action: ThreadHelper.Action<T>):T{
-        return _syn_(action, mBackgroundHandler)
+    fun <T> synBackgroundInvoke(action: ()->T?):T?{
+        return _syn_invoke_(action, mBackgroundHandler)
     }
 
-    fun <T> synFingerprint(action: ThreadHelper.Action<T>):T{
-        return _syn_(action, mFingerprintHandler)
+    fun <T> synFingerprintInvoke(action: ()->T?):T?{
+        return _syn_invoke_(action, mFingerprintHandler)
     }
 
-    fun <T> synMain(action: ThreadHelper.Action<T>):T{
-        return _syn_(action, mMainHandler)
+    fun <T> synMainInvoke(action: ()->T?):T?{
+        return _syn_invoke_(action, mMainHandler)
     }
 
-    @SuppressWarnings("unchecked")
-    private fun <T> _syn_(action: ThreadHelper.Action<T>, handler: Handler):T{
+
+    private fun <T> _syn_invoke_(action: ()->T?, handler: Handler):T?{
         return  if (Thread.currentThread() == handler.looper.thread){
-            action.action()
+            action.invoke() as? T
         }else{
             val queue = pollQueue()
             try {
                 handler.post{
-                    queue.add(action.action())
+                    queue.add(action.invoke())
                 }
-                queue.poll()!! as T
+                queue.poll() as? T
+            }finally {
+                peekQueue(queue)
+            }
+        }
+    }
+
+    fun synBackground(action: ()->Unit){
+        _syn_(action, mBackgroundHandler)
+    }
+
+    fun synFingerprint(action: ()->Unit){
+        _syn_(action, mFingerprintHandler)
+    }
+
+    fun synMain(action: ()->Unit){
+        _syn_(action, mMainHandler)
+    }
+
+    private fun _syn_(action: ()->Unit, handler: Handler):Any?{
+        return  if (Thread.currentThread() == handler.looper.thread){
+            action.invoke()
+        }else{
+            val queue = pollQueue()
+            try {
+                handler.post{
+                    queue.add(action.invoke())
+                }
+                queue.poll()
             }finally {
                 peekQueue(queue)
             }

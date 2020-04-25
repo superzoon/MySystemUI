@@ -4,6 +4,8 @@ import android.util.Log
 import cn.nubia.systemui.NubiaSystemUIApplication
 import cn.nubia.systemui.common.Dump
 import cn.nubia.systemui.fingerprint.FingerprintController
+import cn.nubia.systemui.fingerprint.ThreadHelper
+import cn.nubia.systemui.fingerprint.setHBM
 
 abstract class  FingerprintFlow(val mController:FingerprintController):Dump{
     val TAG by lazy { "${NubiaSystemUIApplication.TAG}.${this.javaClass.simpleName}"}
@@ -19,19 +21,31 @@ abstract class  FingerprintFlow(val mController:FingerprintController):Dump{
                 field=value
             }
         }
-    fun onTouchDown(){
-        when(mState){
-            FlowState.NORMAL -> {
-                mState = FlowState.DOWN
-            }
-            FlowState.DOWN -> {
 
+    fun onTouchDown() = when(mState){
+        FlowState.NORMAL -> {
+            mState = FlowState.DOWN
+            mController.hbmAction(object :FlowAction(""){
+                override fun run() {
+                    super.run()
+                }
+            })
+            ThreadHelper.get().apply {
+                getBgHander().post {
+                    setHBM(true)
+                    synFingerprint{
+                        mController.onHbmEnable(true)
+                    }
+                }
             }
-            FlowState.UI_READY -> {
-            }
-            FlowState.UP -> {
+        }
+        FlowState.DOWN -> {
 
-            }
+        }
+        FlowState.UI_READY -> {
+        }
+        FlowState.UP -> {
+
         }
     }
 
