@@ -208,8 +208,12 @@ class FingerprintController(mContext:Context):Controller(mContext), Dump {
     }
 
     override fun dump(fd: FileDescriptor?, writer: PrintWriter?, args: Array<out String>?) {
-        mOldProcess?.dump(fd, writer, args)
-        mCurrentProcess?.dump(fd, writer, args)
+        writer?.apply {
+            write("mOldProcess:")
+            mOldProcess?.dump(fd, this, args)
+            write("mCurrentProcess:")
+            mCurrentProcess?.dump(fd, this, args)
+        }
     }
 
     private fun onIconShow() {

@@ -11,8 +11,10 @@ import cn.nubia.systemui.common.BiometricCmd
 import cn.nubia.systemui.common.ErrorInfo
 import cn.nubia.systemui.common.processCmd
 import cn.nubia.systemui.fingerprint.setHBM
+import java.io.FileDescriptor
+import java.io.PrintWriter
 
-abstract class  FingerprintProcess(val mContext:Context, val mController:FingerprintController):Dump{
+abstract class  FingerprintProcess(val mContext:Context, val mController:FingerprintController){
     val TAG by lazy { "${NubiaSystemUIApplication.TAG}.${this.javaClass.simpleName}"}
 
     val mFingerprintManager :FingerprintManager = mContext.getSystemService(FingerprintManager::class.java)
@@ -103,4 +105,5 @@ abstract class  FingerprintProcess(val mContext:Context, val mController:Fingerp
     open fun onAuthError() { }
     open fun onFailAuth() { }
     open fun onStopAuth() { }
+    abstract fun dump(fd: FileDescriptor?, writer: PrintWriter?, args: Array<out String>?)
 }
