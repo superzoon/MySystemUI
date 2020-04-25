@@ -9,7 +9,7 @@ import android.view.SurfaceControl
 import android.view.SurfaceSession
 import android.view.SurfaceUtil
 import cn.nubia.systemui.NubiaSystemUIApplication
-import cn.nubia.systemui.fingerprint.ThreadHelper
+import cn.nubia.systemui.NubiaThreadHelper
 import java.util.concurrent.locks.ReentrantLock
 
 class FingerprintView(val mContext: Context){
@@ -47,7 +47,7 @@ class FingerprintView(val mContext: Context){
     }
 
     private fun checkThread(){
-        if(ThreadHelper.get().getSurfaceHandler().looper.isCurrentThread){
+        if(NubiaThreadHelper.get().getSurfaceHandler().looper.isCurrentThread){
             throw IllegalThreadStateException("not in surface thread")
         }
     }

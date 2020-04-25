@@ -3,6 +3,9 @@ package cn.nubia.systemui.fingerprint
 import android.graphics.PointF
 import android.util.Log
 import cn.nubia.systemui.NubiaSystemUIApplication
+import cn.nubia.systemui.common.UpdateMonitor
+import cn.nubia.systemui.common.writeLine
+import java.io.File
 import java.io.FileDescriptor
 import java.io.PrintWriter
 import java.util.concurrent.atomic.AtomicBoolean
@@ -15,6 +18,7 @@ private var mIsHbm:AtomicBoolean = AtomicBoolean(false)
 @Synchronized fun setAodMode(mode:Int){
     if(mAodMode.get() != mode){
         mAodMode.getAndSet(mode)
+        UpdateMonitor.get().getSystemUI()?.setAodMode(mode)
     }
 }
 
@@ -26,7 +30,7 @@ private var mIsHbm:AtomicBoolean = AtomicBoolean(false)
 
 
 @Synchronized fun writeNode(path:String, value:String){
-    Log.i(TAG,"writeNode ${path}:${value}")
+    File(path).writeLine(value)
 }
 
 fun dump(fd: FileDescriptor?, writer: PrintWriter?, args: Array<out String>?) {

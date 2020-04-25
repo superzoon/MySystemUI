@@ -1,20 +1,19 @@
 package cn.nubia.systemui.fingerprint
 
 import android.content.Context
-import android.hardware.biometrics.IBiometricServiceReceiverInternal
-import android.os.Bundle
 import android.os.Handler
 import android.util.Log
 import android.view.Choreographer
 import android.view.Display
+import cn.nubia.systemui.fingerprint.process.ActionList.ActionKey
 import cn.nubia.systemui.NubiaSystemUIApplication
 import cn.nubia.systemui.NubiaSystemUIService
+import cn.nubia.systemui.NubiaThreadHelper
 import cn.nubia.systemui.common.SystemUI
 import cn.nubia.systemui.common.Controller
 import cn.nubia.systemui.common.Dump
 import cn.nubia.systemui.common.UpdateMonitor
-import cn.nubia.systemui.fingerprint.flow.FingerprintFlow
-import cn.nubia.systemui.fingerprint.flow.FlowAction
+import cn.nubia.systemui.fingerprint.process.*
 import java.io.FileDescriptor
 import java.io.PrintWriter
 
@@ -23,47 +22,19 @@ class FingerprintController(mContext:Context):Controller(mContext), Dump {
 
     companion object {
         val TAG = "${NubiaSystemUIApplication.TAG}.FingerprintController"
-        val FLOW_KEY = FlowKey()
     }
 
-    private val mHandler = ThreadHelper.get().getFingerHander()
+    private val mHandler = NubiaThreadHelper.get().getFingerHander()
 
     private val mWindowController by lazy { getController(FingerprintWindowController::class.java) }
 
-    class FlowKey{
-        operator fun contains(key:Int):Boolean{
-            return (key == KEY_FLOW_SCREEN_OFF) or
-                    (key <= KEY_FLOW_SCREEN_ON)or
-                    (key <= KEY_FLOW_SCREEN_DOZE)or
-                    (key <= KEY_FLOW_SCREEN_HBM)
-        }
-
-        companion object {
-            val KEY_FLOW_SCREEN_OFF = Display.STATE_OFF
-            val KEY_FLOW_SCREEN_ON = Display.STATE_ON
-            val KEY_FLOW_SCREEN_DOZE = Display.STATE_DOZE
-            val KEY_FLOW_SCREEN_HBM = 1.shl(4)
-
-            val SCREEN_OFF_ACTIONS = mutableListOf<FlowAction>()
-            val SCREEN_DOZE_ACTIONS = mutableListOf<FlowAction>()
-            val SCREEN_ON_ACTIONS = mutableListOf<FlowAction>()
-            val SCREEN_HBM_ACTIONS = mutableListOf<FlowAction>()
-        }
-    }
-
-    val mFlowAction: Map<Int, MutableList<FlowAction>> = mapOf(
-            FlowKey.KEY_FLOW_SCREEN_OFF to FlowKey.SCREEN_OFF_ACTIONS,
-            FlowKey.KEY_FLOW_SCREEN_ON to FlowKey.SCREEN_ON_ACTIONS,
-            FlowKey.KEY_FLOW_SCREEN_DOZE to FlowKey.SCREEN_DOZE_ACTIONS,
-            FlowKey.KEY_FLOW_SCREEN_HBM to FlowKey.SCREEN_HBM_ACTIONS
-    )
-
+    val mActionList = ActionList()
     private var isConnection = false
     private var mSystemUI: SystemUI? = null
     private var mDisplayState: Int = Display.STATE_UNKNOWN
     private var mDisplayStateStr: String = "STATE_UNKNOWN"
-    private var mOldFlow: FingerprintFlow? = null
-    private var mFlow: FingerprintFlow? = null
+    private var mOldProcess: FingerprintProcess? = null
+    private var mCurrentProcess: FingerprintProcess? = null
 
     private val mChoreographer by lazy {
         if (Thread.currentThread() == mHandler.looper.thread) {
@@ -71,12 +42,15 @@ class FingerprintController(mContext:Context):Controller(mContext), Dump {
             Choreographer.getInstance()
         } else {
 
-            ThreadHelper.get().synFingerprintInvoke{
+            NubiaThreadHelper.get().synFingerprintInvoke{
                     Choreographer.getInstance()
                 }!!
         }
     }
 
+    fun postFrameDelayed(run:(frameTimeNanos:Long)->Unit, delay:Long){
+        mChoreographer.postFrameCallbackDelayed(run, delay)
+    }
     private val mMonitor = object : NubiaBiometricMonitor.UpdateMonitorCallback,
             UpdateMonitor.UpdateMonitorCallback, FingerprintWindowController.Callback {
         override fun onShow() {
@@ -183,8 +157,8 @@ class FingerprintController(mContext:Context):Controller(mContext), Dump {
         if (displayId == Display.DEFAULT_DISPLAY) {
             mDisplayState = state
             mDisplayStateStr = stateStr
-            if(mDisplayState in FLOW_KEY){
-                mFlowAction[mDisplayState]!!.removeAll {
+            if(mDisplayState in ActionKey){
+                mActionList[mDisplayState].removeAll {
                     it.invoke()
                 }
             }else{
@@ -216,71 +190,71 @@ class FingerprintController(mContext:Context):Controller(mContext), Dump {
     fun onFingerprintDown() {
         when (mDisplayState) {
             Display.STATE_OFF -> {
-                mFlow = FingerprintFlow.ScreenOffFlow(this)
+                mCurrentProcess = ScreenOffProcess(mContext,this)
             }
             Display.STATE_ON -> {
-                mFlow = FingerprintFlow.ScreenOnFlow(this)
+                mCurrentProcess = ScreenOnProcess(mContext,this)
             }
             Display.STATE_DOZE, Display.STATE_DOZE_SUSPEND -> {
-                mFlow = FingerprintFlow.ScreenAodFlow(this)
+                mCurrentProcess = ScreenAodProcess(mContext,this)
             }
             else -> {
-                mFlow = null
+                mCurrentProcess = null
             }
         }
-        mFlow?.onTouchDown()
+        mCurrentProcess?.onTouchDown()
     }
 
     fun onFingerprintUp() {
-        mFlow?.onTouchUp()
-        mOldFlow = mFlow
-        mFlow = null
+        mCurrentProcess?.onTouchUp()
+        mOldProcess = mCurrentProcess
+        mCurrentProcess = null
     }
 
     override fun dump(fd: FileDescriptor?, writer: PrintWriter?, args: Array<out String>?) {
-        mOldFlow?.dump(fd, writer, args)
-        mFlow?.dump(fd, writer, args)
+        mOldProcess?.dump(fd, writer, args)
+        mCurrentProcess?.dump(fd, writer, args)
     }
 
     private fun onIconShow() {
-        mFlow?.onIconShow()
+        mCurrentProcess?.onIconShow()
     }
 
     private fun onIconHide() {
-        mFlow?.onIconHide()
+        mCurrentProcess?.onIconHide()
     }
 
     private fun onStartAuth(owner: String?) {
-        mFlow?.onStartAuth(owner)
+        mCurrentProcess?.onStartAuth(owner)
     }
 
     private fun onDoneAuth() {
-        mFlow?.onDoneAuth()
+        mCurrentProcess?.onDoneAuth()
     }
 
     private fun onAcquired(info: Int) {
-        mFlow?.onAcquired(info)
+        mCurrentProcess?.onAcquired(info)
     }
 
     private fun onAuthError() {
-        mFlow?.onAuthError()
+        mCurrentProcess?.onAuthError()
     }
 
     private fun onFailAuth() {
-        mFlow?.onFailAuth()
+        mCurrentProcess?.onFailAuth()
     }
 
     private fun onStopAuth() {
-        mFlow?.onStopAuth()
+        mCurrentProcess?.onStopAuth()
     }
 
-    fun hbmAction(flowAction: FlowAction) {
-        FlowKey.SCREEN_HBM_ACTIONS.add(flowAction)
+    fun addHbmAction(flowAction: Action) {
+        mActionList[ActionKey.KEY_SCREEN_HBM].add(flowAction)
     }
 
     fun onHbmEnable(enbale: Boolean) {
         if(enbale){
-            FlowKey.SCREEN_HBM_ACTIONS.removeAll{
+            mActionList[ActionKey.KEY_SCREEN_HBM].removeAll{
                 it.invoke()
             }
         }

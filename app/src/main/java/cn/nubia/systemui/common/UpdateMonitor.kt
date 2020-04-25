@@ -14,7 +14,7 @@ import android.view.WindowManager
 import cn.nubia.systemui.NubiaSystemUIApplication
 import cn.nubia.systemui.fingerprint.NubiaBiometricMonitor
 import cn.nubia.systemui.fingerprint.SystemBiometricMonitor
-import cn.nubia.systemui.fingerprint.ThreadHelper
+import cn.nubia.systemui.NubiaThreadHelper
 import java.lang.NumberFormatException
 import java.lang.ref.Reference
 import java.lang.ref.WeakReference
@@ -24,6 +24,7 @@ class UpdateMonitor private constructor(){
     private val mList = mutableListOf<Reference<UpdateMonitorCallback>>()
     private val mDisplayStateMap = mutableMapOf<Int, Int>()
     private var mSystemUI:SystemUI? = null
+    var mOldBiometricAttrFlages = 0
     private val mContext by lazy {
         NubiaSystemUIApplication.getContext()
     }
@@ -80,8 +81,9 @@ class UpdateMonitor private constructor(){
 
     init {
         val filter = IntentFilter()
+        filter.addAction(Intent.ACTION_BATTERY_CHANGED)
         mContext.registerReceiver(mInternalObj, filter)
-        mDisplayManager.registerDisplayListener(mInternalObj, ThreadHelper.get().getMainHander())
+        mDisplayManager.registerDisplayListener(mInternalObj, NubiaThreadHelper.get().getMainHander())
         mTelephonyManager.listen(mPhoneStateListener, PhoneStateListener.LISTEN_CALL_STATE)
         mHandler.post{UpdateMonitor.get().callDisplayChange(Display.DEFAULT_DISPLAY, mDisplayManager.getDisplay(Display.DEFAULT_DISPLAY).state)}
     }
@@ -177,7 +179,6 @@ class UpdateMonitor private constructor(){
         }
     }
 
-    var mOldBiometricAttrFlages = 0
     private fun callBiometricAttrFlagesChange(flages:Int){
         if(BiometricDiplayConstant.isValidState(flages)){
             if(mOldBiometricAttrFlages != flages){
@@ -335,7 +336,7 @@ class UpdateMonitor private constructor(){
                 return field
             }
 
-        public fun get():UpdateMonitor{
+        fun get():UpdateMonitor{
             return mUpdateMonitor!!
         }
     }

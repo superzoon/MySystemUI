@@ -2,7 +2,7 @@ package cn.nubia.systemui.common
 
 import android.util.Log
 import cn.nubia.systemui.NubiaSystemUIApplication
-import cn.nubia.systemui.fingerprint.ThreadHelper
+import cn.nubia.systemui.NubiaThreadHelper
 import java.io.FileDescriptor
 import java.io.PrintWriter
 import java.lang.ref.Reference
@@ -12,7 +12,7 @@ interface Dump {
     companion object {
         private val TAG = "${NubiaSystemUIApplication.TAG}.Dump"
         private val mList = mutableListOf<Reference<Dump>>()
-        private val mHandler = ThreadHelper.get().getMainHander()
+        private val mHandler = NubiaThreadHelper.get().getMainHander()
 
         private fun registerDump(dump:Dump?){
             dump.apply {

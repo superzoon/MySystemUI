@@ -146,6 +146,14 @@ class BiometricConstant{
         val TYPE_ATTR_FLAGES = 6
     }
 }
+class BiometricCmd{
+    companion object {
+        val CMD_DOWN = 13
+        val CMD_UI_READY = 14
+        val TYPE_UP = 15
+        operator fun contains(value:Int):Boolean =(value>=CMD_DOWN) and (value<=TYPE_UP)
+    }
+}
 class SystemUIStateConstant{
     companion object {
         val TYPE_TEST = 1

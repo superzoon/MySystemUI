@@ -1,6 +1,6 @@
-package cn.nubia.systemui.fingerprint.flow
+package cn.nubia.systemui.fingerprint.process
 
-abstract class FlowAction(val name:String, val action:Runnable?=null):Runnable {
+abstract class Action(val name:String, val action:Runnable?=null):Runnable {
     override fun run() {
         action?.run()
     }

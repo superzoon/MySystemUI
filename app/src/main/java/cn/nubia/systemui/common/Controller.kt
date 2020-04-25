@@ -1,17 +1,13 @@
 package cn.nubia.systemui.common
 
-import android.app.ActivityManager
 import android.content.Context
 import android.content.res.Configuration
-import android.os.Build
 import android.os.Handler
-import android.support.annotation.RequiresApi
 import android.util.Log
 import cn.nubia.systemui.NubiaSystemUIApplication
 import cn.nubia.systemui.NubiaSystemUIService
 import cn.nubia.systemui.fingerprint.FingerprintController
 import cn.nubia.systemui.fingerprint.FingerprintWindowController
-import cn.nubia.systemui.fingerprint.ThreadHelper
 import java.io.FileDescriptor
 import java.io.PrintWriter
 
@@ -52,7 +48,7 @@ abstract class Controller(val mContext:Context):Dump {
     companion object {
         private val TAG = "${NubiaSystemUIApplication.TAG}.Controller"
         private val mMap = mutableMapOf<Class<*>, Controller>()
-        fun forEach(action: (Controller) -> Unit) =mMap.values.forEach{ action.invoke(it) }
+        fun forEach(action: (Controller) -> Unit) = mMap.values.forEach{ action.invoke(it) }
 
         fun init(context:NubiaSystemUIApplication){
             mMap[FingerprintController::class.java] = FingerprintController(context)

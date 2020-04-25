@@ -1,8 +1,62 @@
 package cn.nubia.systemui.common
 
+import android.hardware.fingerprint.FingerprintManager
+import android.util.Log
 import android.view.View
 import android.widget.Button
 import android.widget.EditText
+import cn.nubia.systemui.NubiaSystemUIApplication.Companion.TAG
+import java.io.BufferedReader
+import java.io.File
+import java.io.FileReader
+import java.io.FileWriter
+
+
+fun File.writeLine(str:String):Boolean = if(canWrite()){
+        try {
+            val w = FileWriter(this)
+            w.write(str)
+            w.flush()
+            w.close()
+            true
+        }catch (e:Exception){
+            Log.w(TAG, "ERROR write err:${e.message}")
+            false
+        }
+    }else{
+        Log.w(TAG, "ERROR not write:${this}")
+        false
+    }
+
+fun File.readLine():String = if(canRead()){
+        var r:BufferedReader? = null
+        try {
+            r = BufferedReader(FileReader(this))
+            r.readLine()
+        }catch (e:Exception){
+            Log.w(TAG, "ERROR read err:${e.message}")
+            ""
+        } finally {
+            r?.close()
+        }
+    }else{
+        Log.w(TAG, "ERROR not read:${this}")
+        ""
+    }
+
+fun FingerprintManager.writeNode(fileName:String, value:Int){
+
+}
+
+
+fun FingerprintManager.processCmd(cmd:Int, arr1:Int, arr2:Int, sendBuff:ByteArray, len:Int): ByteArray?{
+    if(cmd in BiometricCmd){
+        return null
+    }else{
+        throw IllegalAccessError("processCmd cmd=${cmd}")
+    }
+}
+
 /*
     扩展点击事件
  */

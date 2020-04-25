@@ -1,21 +1,28 @@
-package cn.nubia.systemui.fingerprint
+package cn.nubia.systemui
 
 import android.os.Handler
 import android.os.HandlerThread
 import android.os.Looper
 import android.os.Process
+import android.util.Log
+import android.util.PrintWriterPrinter
+import cn.nubia.systemui.NubiaSystemUIApplication.Companion.TAG
+import cn.nubia.systemui.common.Dump
+import java.io.FileDescriptor
+import java.io.PrintWriter
 import java.util.*
 import java.util.concurrent.LinkedBlockingQueue
 
 @Suppress("UNCHECKED_CAST")
-class ThreadHelper private constructor(){
-
-    val mQueueList = LinkedList<Queue<Any>>()
+class NubiaThreadHelper private constructor():Dump{
 
     private val mMainHandler:Handler by lazy {
 
-        Handler(Looper.getMainLooper())
+        val handler = Handler(Looper.getMainLooper())
+        handler
     }
+
+    val mQueueList = LinkedList<Queue<Any>>()
 
     private val mFingerprintHandler:Handler by lazy {
         var t = HandlerThread("FpThread")
@@ -47,6 +54,18 @@ class ThreadHelper private constructor(){
         handler
     }
 
+    init {
+        registerDump()
+        mMainHandler.looper.setMessageLogging{
+            Log.i(TAG, it)
+        }
+        mFingerprintHandler.looper.setMessageLogging{
+            Log.i(TAG, it)
+        }
+        mSurfaceHandler.looper.setMessageLogging{
+            Log.i(TAG, it)
+        }
+    }
     fun getMainHander():Handler{
         return mMainHandler
     }
@@ -135,16 +154,34 @@ class ThreadHelper private constructor(){
     }
 
     companion object {
-        private  var mHelp:ThreadHelper? = null
+        private  var mHelp: NubiaThreadHelper? = null
             get(){
                 if (field == null){
-                    field = ThreadHelper()
+                    field = NubiaThreadHelper()
                 }
                 return field
             }
 
-        public fun get():ThreadHelper{
+        public fun get(): NubiaThreadHelper {
             return mHelp!!
+        }
+    }
+
+
+    override fun dump(fd: FileDescriptor?, writer: PrintWriter?, args: Array<out String>?) {
+        writer?.apply {
+            mMainHandler.dump({
+                write("${it}\n")
+            }, "     ")
+            mFingerprintHandler.dump({
+                write("${it}\n")
+            }, "     ")
+            mSurfaceHandler.dump({
+                write("${it}\n")
+            }, "     ")
+            mBackgroundHandler.dump({
+                write("${it}\n")
+            }, "     ")
         }
     }
 }
