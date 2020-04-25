@@ -37,15 +37,9 @@ class FingerprintController(mContext:Context):Controller(mContext), Dump {
     private var mCurrentProcess: FingerprintProcess? = null
 
     private val mChoreographer by lazy {
-        if (Thread.currentThread() == mHandler.looper.thread) {
-
+        NubiaThreadHelper.get().synFingerprintInvoke{
             Choreographer.getInstance()
-        } else {
-
-            NubiaThreadHelper.get().synFingerprintInvoke{
-                    Choreographer.getInstance()
-                }!!
-        }
+        }!!
     }
 
     fun postFrameDelayed(run:(frameTimeNanos:Long)->Unit, delay:Long){
@@ -188,6 +182,7 @@ class FingerprintController(mContext:Context):Controller(mContext), Dump {
     }
 
     fun onFingerprintDown() {
+        checkThread()
         when (mDisplayState) {
             Display.STATE_OFF -> {
                 mCurrentProcess = ScreenOffProcess(mContext,this)
@@ -206,6 +201,7 @@ class FingerprintController(mContext:Context):Controller(mContext), Dump {
     }
 
     fun onFingerprintUp() {
+        checkThread()
         mCurrentProcess?.onTouchUp()
         mOldProcess = mCurrentProcess
         mCurrentProcess = null
@@ -217,47 +213,60 @@ class FingerprintController(mContext:Context):Controller(mContext), Dump {
     }
 
     private fun onIconShow() {
+        checkThread()
         mCurrentProcess?.onIconShow()
     }
 
     private fun onIconHide() {
+        checkThread()
         mCurrentProcess?.onIconHide()
     }
 
     private fun onStartAuth(owner: String?) {
+        checkThread()
         mCurrentProcess?.onStartAuth(owner)
     }
 
     private fun onDoneAuth() {
+        checkThread()
         mCurrentProcess?.onDoneAuth()
     }
 
     private fun onAcquired(info: Int) {
+        checkThread()
         mCurrentProcess?.onAcquired(info)
     }
 
     private fun onAuthError() {
+        checkThread()
         mCurrentProcess?.onAuthError()
     }
 
     private fun onFailAuth() {
+        checkThread()
         mCurrentProcess?.onFailAuth()
     }
 
     private fun onStopAuth() {
+        checkThread()
         mCurrentProcess?.onStopAuth()
     }
 
     fun addHbmAction(flowAction: Action) {
-        mActionList[ActionKey.KEY_SCREEN_HBM].add(flowAction)
+        checkThread()
+        if(flowAction !in mActionList[ActionKey.KEY_SCREEN_HBM]){
+            mActionList[ActionKey.KEY_SCREEN_HBM].add(flowAction)
+        }
     }
 
     fun onHbmEnable(enbale: Boolean) {
+        checkThread()
         if(enbale){
             mActionList[ActionKey.KEY_SCREEN_HBM].removeAll{
                 it.invoke()
             }
         }
+        mCurrentProcess?.onUiReady()
     }
 
 }

@@ -1,8 +1,12 @@
 package cn.nubia.systemui.fingerprint
 
+import android.content.Context
 import android.graphics.PointF
+import android.os.VibrationEffect
+import android.os.Vibrator
 import android.util.Log
 import cn.nubia.systemui.NubiaSystemUIApplication
+import cn.nubia.systemui.NubiaThreadHelper
 import cn.nubia.systemui.common.UpdateMonitor
 import cn.nubia.systemui.common.writeLine
 import java.io.File
@@ -14,6 +18,16 @@ import java.util.concurrent.atomic.AtomicInteger
 private val TAG = "${NubiaSystemUIApplication.TAG}.Util"
 private var mAodMode:AtomicInteger = AtomicInteger(0)
 private var mIsHbm:AtomicBoolean = AtomicBoolean(false)
+
+private val mVibrator by lazy {
+    NubiaSystemUIApplication.getContext().getSystemService(Vibrator::class.java);
+}
+
+fun vibrator(milliseconds:Long, amplitude:Int){
+    NubiaThreadHelper.get().getBgHander().post {
+        mVibrator.vibrate(VibrationEffect.createOneShot(milliseconds, amplitude))
+    }
+}
 
 @Synchronized fun setAodMode(mode:Int){
     if(mAodMode.get() != mode){
@@ -28,13 +42,8 @@ private var mIsHbm:AtomicBoolean = AtomicBoolean(false)
     }
 }
 
-
 @Synchronized fun writeNode(path:String, value:String){
     File(path).writeLine(value)
-}
-
-fun dump(fd: FileDescriptor?, writer: PrintWriter?, args: Array<out String>?) {
-    Log.i(TAG,"dump ${fd}.${writer}.${args}")
 }
 
 class PointUtil{

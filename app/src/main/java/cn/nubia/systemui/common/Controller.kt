@@ -45,6 +45,12 @@ abstract class Controller(val mContext:Context):Dump {
 
     fun getContext()=mContext
 
+    fun checkThread(){
+        if(getHandler().looper.isCurrentThread){
+            throw IllegalAccessError("not run in ${getHandler().looper.thread.name}")
+        }
+    }
+
     companion object {
         private val TAG = "${NubiaSystemUIApplication.TAG}.Controller"
         private val mMap = mutableMapOf<Class<*>, Controller>()

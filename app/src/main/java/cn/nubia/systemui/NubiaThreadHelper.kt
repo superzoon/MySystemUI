@@ -16,42 +16,40 @@ import java.util.concurrent.LinkedBlockingQueue
 @Suppress("UNCHECKED_CAST")
 class NubiaThreadHelper private constructor():Dump{
 
-    private val mMainHandler:Handler by lazy {
-
-        val handler = Handler(Looper.getMainLooper())
-        handler
-    }
-
+    private val mMainHandler:Handler = Handler(Looper.getMainLooper())
     val mQueueList = LinkedList<Queue<Any>>()
 
     private val mFingerprintHandler:Handler by lazy {
-        var t = HandlerThread("FpThread")
-        t.start()
-        val handler = Handler(t.looper)
-        handler.post{
-            Process.setThreadPriority(Process.THREAD_PRIORITY_DISPLAY+1)
+        HandlerThread("FpThread").let {
+            it.start()
+            it.looper
+        }.let {
+            Handler(it).apply {
+                Process.setThreadPriority(Process.THREAD_PRIORITY_DISPLAY+1)
+            }
         }
-        handler
     }
 
     private val mSurfaceHandler:Handler by lazy {
-        var t = HandlerThread("SurfaceThread")
-        t.start()
-        val handler = Handler(t.looper)
-        handler.post{
-            Process.setThreadPriority(Process.THREAD_PRIORITY_DISPLAY-1)
+        HandlerThread("SurfaceThread").let {
+            it.start()
+            it.looper
+        }.let {
+            Handler(it).apply {
+                Process.setThreadPriority(Process.THREAD_PRIORITY_DISPLAY-1)
+            }
         }
-        handler
     }
 
     private val mBackgroundHandler:Handler by lazy {
-        var t = HandlerThread("BgThread")
-        t.start()
-        val handler = Handler(t.looper)
-        handler.post{
-            Process.setThreadPriority(Process.THREAD_PRIORITY_DEFAULT+1)
+        HandlerThread("BgThread").let {
+            it.start()
+            it.looper
+        }.let {
+            Handler(it).apply {
+                Process.setThreadPriority(Process.THREAD_PRIORITY_DEFAULT+1)
+            }
         }
-        handler
     }
 
     init {
@@ -111,7 +109,7 @@ class NubiaThreadHelper private constructor():Dump{
 
     private fun <T> _syn_invoke_(action: ()->T?, handler: Handler):T?{
         return  if (Thread.currentThread() == handler.looper.thread){
-            action.invoke() as? T
+            action.invoke() as T
         }else{
             val queue = pollQueue()
             try {

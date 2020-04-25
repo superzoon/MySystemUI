@@ -166,6 +166,7 @@ class UpdateMonitor private constructor(){
                                 val info = try {
                                     get(0).toInt()
                                 }catch (e:NumberFormatException){
+                                    log("error info = ${get(0)}")
                                     0
                                 }
                                 log("acquired info = ${info}")

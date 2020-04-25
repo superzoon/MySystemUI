@@ -146,12 +146,28 @@ class BiometricConstant{
         val TYPE_ATTR_FLAGES = 6
     }
 }
+class ErrorInfo{
+    companion object {
+        val xx01 = 1101
+        val xx02 = 1102
+        val xx03 = 1103
+        val xx20 = 1120
+        infix fun isVibrateError(info:Int):Boolean{
+            return info == xx20
+        }
+
+        operator fun contains(info:Int):Boolean{
+            return false
+        }
+    }
+}
+
 class BiometricCmd{
     companion object {
         val CMD_DOWN = 13
         val CMD_UI_READY = 14
-        val TYPE_UP = 15
-        operator fun contains(value:Int):Boolean =(value>=CMD_DOWN) and (value<=TYPE_UP)
+        val CMD_UP = 15
+        operator fun contains(value:Int):Boolean =(value>=CMD_DOWN) and (value<=CMD_UP)
     }
 }
 class SystemUIStateConstant{
