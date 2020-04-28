@@ -94,22 +94,16 @@ class NubiaThreadHelper private constructor():Dump{
         }
     }
 
-    fun <T> synBackgroundInvoke(action: ()->T?):T?{
-        return _syn_invoke_(action, mBackgroundHandler)
-    }
+    fun <T> synBackgroundInvoke(action: ()->T):T? = synInvoke(mBackgroundHandler, action)
 
-    fun <T> synFingerprintInvoke(action: ()->T?):T?{
-        return _syn_invoke_(action, mFingerprintHandler)
-    }
+    fun <T> synFingerprintInvoke(action: ()->T):T? = synInvoke(mFingerprintHandler, action)
 
-    fun <T> synMainInvoke(action: ()->T?):T?{
-        return _syn_invoke_(action, mMainHandler)
-    }
+    fun <T> synMainInvoke(action: ()->T):T? = synInvoke(mMainHandler, action)
 
 
-    private fun <T> _syn_invoke_(action: ()->T?, handler: Handler):T?{
+    fun <T> synInvoke(handler: Handler, action: ()->T):T?{
         return  if (Thread.currentThread() == handler.looper.thread){
-            action.invoke() as T
+            action.invoke()
         }else{
             val queue = pollQueue()
             try {
@@ -123,20 +117,14 @@ class NubiaThreadHelper private constructor():Dump{
         }
     }
 
-    fun synBackground(action: ()->Unit){
-        _syn_(action, mBackgroundHandler)
-    }
+    fun synBackground(action: ()->Unit) = synInvoke(mBackgroundHandler, action)
 
-    fun synFingerprint(action: ()->Unit){
-        _syn_(action, mFingerprintHandler)
-    }
+    fun synFingerprint(action: ()->Unit) = synInvoke(mFingerprintHandler, action)
 
-    fun synMain(action: ()->Unit){
-        _syn_(action, mMainHandler)
-    }
+    fun synMain(action: ()->Unit) = synInvoke(mMainHandler, action)
 
-    private fun _syn_(action: ()->Unit, handler: Handler):Any?{
-        return  if (Thread.currentThread() == handler.looper.thread){
+    fun synInvoke(handler: Handler, action: ()->Unit){
+        if (Thread.currentThread() == handler.looper.thread){
             action.invoke()
         }else{
             val queue = pollQueue()

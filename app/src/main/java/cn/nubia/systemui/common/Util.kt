@@ -12,10 +12,14 @@ import cn.nubia.systemui.common.writeLine
 import java.io.File
 import java.io.FileDescriptor
 import java.io.PrintWriter
+import java.text.DateFormat
+import java.text.SimpleDateFormat
+import java.util.*
 import java.util.concurrent.atomic.AtomicBoolean
 import java.util.concurrent.atomic.AtomicInteger
 
 private val TAG = "${NubiaSystemUIApplication.TAG}.Util"
+private val DATE_FORMAT:DateFormat = SimpleDateFormat("HH:mm:ss.SSS")
 private var mAodMode:AtomicInteger = AtomicInteger(0)
 private var mIsHbm:AtomicBoolean = AtomicBoolean(false)
 
@@ -45,6 +49,10 @@ fun vibrator(milliseconds:Long, amplitude:Int){
 @Synchronized fun writeNode(path:String, value:String){
     File(path).writeLine(value)
 }
+
+fun getTimeStr():String = DATE_FORMAT.format(Date())
+
+data class InfoLog(val mInfo:String,val mTime:String = getTimeStr())
 
 class PointUtil{
     companion object {

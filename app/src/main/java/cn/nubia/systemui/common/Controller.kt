@@ -2,6 +2,7 @@ package cn.nubia.systemui.common
 
 import android.content.Context
 import android.content.res.Configuration
+import android.os.Build
 import android.os.Handler
 import android.util.Log
 import cn.nubia.systemui.NubiaSystemUIApplication
@@ -46,7 +47,7 @@ abstract class Controller(val mContext:Context):Dump {
     fun getContext()=mContext
 
     fun checkThread(){
-        if(getHandler().looper.isCurrentThread){
+        if("user" != Build.TYPE && !getHandler().looper.isCurrentThread){
             throw IllegalAccessError("not run in ${getHandler().looper.thread.name}")
         }
     }

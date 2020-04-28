@@ -4,17 +4,18 @@ import android.content.Context
 import android.hardware.fingerprint.FingerprintManager
 import android.util.Log
 import cn.nubia.systemui.NubiaSystemUIApplication
-import cn.nubia.systemui.common.Dump
 import cn.nubia.systemui.fingerprint.FingerprintController
 import cn.nubia.systemui.NubiaThreadHelper
 import cn.nubia.systemui.common.BiometricCmd
-import cn.nubia.systemui.common.ErrorInfo
+import cn.nubia.systemui.common.FingerprintInfo
 import cn.nubia.systemui.common.processCmd
+import cn.nubia.systemui.fingerprint.FingerprintWindowController
 import cn.nubia.systemui.fingerprint.setHBM
 import java.io.FileDescriptor
 import java.io.PrintWriter
 
-abstract class  FingerprintProcess(val mContext:Context, val mController:FingerprintController){
+abstract class  FingerprintProcess(val mContext:Context, val mFingerprintController:FingerprintController,
+                                   val mWindowController: FingerprintWindowController){
     val TAG by lazy { "${NubiaSystemUIApplication.TAG}.${this.javaClass.simpleName}"}
 
     val mFingerprintManager :FingerprintManager = mContext.getSystemService(FingerprintManager::class.java)
@@ -36,7 +37,7 @@ abstract class  FingerprintProcess(val mContext:Context, val mController:Fingerp
         ProcessState.NORMAL ,ProcessState.UP  -> {
             mState = ProcessState.DOWN
             mFingerprintManager.processCmd(BiometricCmd.CMD_DOWN, 0, 0 , byteArrayOf(), 0)
-            mController.addHbmAction(object :Action(""){
+            mFingerprintController.addHbmAction(object :Action(""){
                 override fun run() {
                     super.run()
                 }
@@ -45,7 +46,7 @@ abstract class  FingerprintProcess(val mContext:Context, val mController:Fingerp
                 getBgHander().post {
                     setHBM(true)
                     synFingerprint{
-                        mController.onHbmEnable(true)
+                        mFingerprintController.onHbmEnable(true)
                     }
                 }
             }
@@ -77,7 +78,7 @@ abstract class  FingerprintProcess(val mContext:Context, val mController:Fingerp
                     getBgHander().post {
                         setHBM(false)
                         synFingerprint{
-                            mController.onHbmEnable(false)
+                            mFingerprintController.onHbmEnable(false)
                         }
                     }
                 }
@@ -90,8 +91,8 @@ abstract class  FingerprintProcess(val mContext:Context, val mController:Fingerp
 
     open fun onAcquired(info: Int) {
         when(info){
-            in ErrorInfo -> {
-                if (ErrorInfo isVibrateError info){
+            in FingerprintInfo -> {
+                if (FingerprintInfo.isVibrateError(info)){
 
                 }
             }
@@ -100,7 +101,9 @@ abstract class  FingerprintProcess(val mContext:Context, val mController:Fingerp
 
     open fun onIconShow() {}
     open fun onIconHide() {}
-    open fun onStartAuth(owner: String?) { }
+    open fun onStartAuth(owner: String?) {
+        mWindowController.show()
+    }
     open fun onDoneAuth() { }
     open fun onAuthError() { }
     open fun onFailAuth() { }

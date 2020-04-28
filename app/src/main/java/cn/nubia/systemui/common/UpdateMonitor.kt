@@ -15,14 +15,31 @@ import cn.nubia.systemui.NubiaSystemUIApplication
 import cn.nubia.systemui.fingerprint.NubiaBiometricMonitor
 import cn.nubia.systemui.fingerprint.SystemBiometricMonitor
 import cn.nubia.systemui.NubiaThreadHelper
+import cn.nubia.systemui.fingerprint.InfoLog
+import cn.nubia.systemui.fingerprint.getTimeStr
+import java.io.FileDescriptor
+import java.io.PrintWriter
 import java.lang.NumberFormatException
 import java.lang.ref.Reference
 import java.lang.ref.WeakReference
 
-class UpdateMonitor private constructor(){
+class UpdateMonitor private constructor():Dump{
+    override fun dump(fd: FileDescriptor?, writer: PrintWriter?, args: Array<out String>?) {
+        //打印最近40个info
+        writer?.apply {
+            val start = mIndexForInfo+1
+            val end = start+mInfoList.size
+            (start..end).forEach{
+                mInfoList[it%mInfoList.size]?.also { writer.println("${it}") }
+            }
+        }
+    }
+
     private val mHandler = Handler(Looper.getMainLooper());
     private val mList = mutableListOf<Reference<UpdateMonitorCallback>>()
     private val mDisplayStateMap = mutableMapOf<Int, Int>()
+    private val mInfoList = arrayOfNulls<InfoLog>(40)
+    private var mIndexForInfo = 0
     private var mSystemUI:SystemUI? = null
     var mOldBiometricAttrFlages = 0
     private val mContext by lazy {
@@ -139,38 +156,46 @@ class UpdateMonitor private constructor(){
             }
             else -> {
                 if(data.containsKey("info")){
-                    data.getString("info")?.split("_")?.apply {
-                        when(get(0)){
-                            "startAuth" -> {
-                                val owner = if(size>1){get(1)}else{null}
-                                log("startAuth owner = ${owner}")
-                                NubiaBiometricMonitor.get().callStartAuth(owner)
-                            }
-                            "doneAuth" -> {
-                                log("doneAuth")
-                                NubiaBiometricMonitor.get().callDoneAuth()
-                            }
-                            "stopAuth" -> {
-                                log("stopAuth")
-                                NubiaBiometricMonitor.get().callStopAuth()
-                            }
-                            "autherror" -> {
-                                log("autherror")
-                                NubiaBiometricMonitor.get().callAuthError()
-                            }
-                            "failAuth" -> {
-                                log("failAuth")
-                                NubiaBiometricMonitor.get().callFailAuth()
-                            }
-                            else -> {
-                                val info = try {
-                                    get(0).toInt()
-                                }catch (e:NumberFormatException){
-                                    log("error info = ${get(0)}")
-                                    0
+                    data.getString("info")?.also {
+                        mInfoList[mIndexForInfo++]=InfoLog(it)
+                        it.split("_")?.apply {
+                            val indexStr = get(0)
+                            when(indexStr){
+                                "startAuth" -> {
+                                    val owner = if(size>1){get(1)}else{null}
+                                    log("startAuth owner = ${owner}")
+                                    NubiaBiometricMonitor.get().callStartAuth(owner)
                                 }
-                                log("acquired info = ${info}")
-                                NubiaBiometricMonitor.get().callAcquired(info)
+                                "doneAuth" -> {
+                                    log("doneAuth")
+                                    NubiaBiometricMonitor.get().callDoneAuth()
+                                }
+                                "stopAuth" -> {
+                                    log("stopAuth")
+                                    NubiaBiometricMonitor.get().callStopAuth()
+                                }
+                                "autherror" -> {
+                                    log("autherror")
+                                    NubiaBiometricMonitor.get().callAuthError()
+                                }
+                                "failAuth" -> {
+                                    log("failAuth")
+                                    NubiaBiometricMonitor.get().callFailAuth()
+                                }
+                                else -> {
+                                    val info = try {
+                                        if(indexStr.startsWith("eenroll")){
+                                            FingerprintInfo.MSG_EENROLL_BASE_CODE+indexStr.replace("eenroll","").toInt()
+                                        }else{
+                                            indexStr.toInt()
+                                        }
+                                    }catch (e:NumberFormatException){
+                                        log("error info = ${get(0)}")
+                                        0
+                                    }
+                                    log("acquired info = ${info}")
+                                    NubiaBiometricMonitor.get().callAcquired(info)
+                                }
                             }
                         }
                     }
@@ -181,10 +206,10 @@ class UpdateMonitor private constructor(){
     }
 
     private fun callBiometricAttrFlagesChange(flages:Int){
-        if(BiometricDiplayConstant.isValidState(flages)){
+        if(BiometricShowFlagesConstant.isValidState(flages)){
             if(mOldBiometricAttrFlages != flages){
                 mOldBiometricAttrFlages = flages
-                Log.i(TAG, "biometric attr flages change = ${BiometricDiplayConstant.flagsToString(flages)}")
+                Log.i(TAG, "biometric attr flages change = ${BiometricShowFlagesConstant.flagsToString(flages)}")
             }
         }else{
             throw IllegalAccessError("error biometric attr flages change, flages = ${flages}")

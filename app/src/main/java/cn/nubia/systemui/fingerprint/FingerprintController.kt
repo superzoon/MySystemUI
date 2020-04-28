@@ -185,13 +185,13 @@ class FingerprintController(mContext:Context):Controller(mContext), Dump {
         checkThread()
         when (mDisplayState) {
             Display.STATE_OFF -> {
-                mCurrentProcess = ScreenOffProcess(mContext,this)
+                mCurrentProcess = ScreenOffProcess(mContext,this, mWindowController)
             }
             Display.STATE_ON -> {
-                mCurrentProcess = ScreenOnProcess(mContext,this)
+                mCurrentProcess = ScreenOnProcess(mContext,this, mWindowController)
             }
             Display.STATE_DOZE, Display.STATE_DOZE_SUSPEND -> {
-                mCurrentProcess = ScreenAodProcess(mContext,this)
+                mCurrentProcess = ScreenAodProcess(mContext,this, mWindowController)
             }
             else -> {
                 mCurrentProcess = null

@@ -10,8 +10,7 @@ import cn.nubia.systemui.common.Controller
 import cn.nubia.systemui.fingerprint.ui.SurfaceViewWindow
 
 class FingerprintWindowController(mContext: Context):Controller(mContext){
-
-    val mHandler = NubiaThreadHelper.get().getFingerHander()
+    val mHandler = NubiaThreadHelper.get().getMainHander()
     val mFingerprintController by lazy { getController(FingerprintController::class.java) }
     val mSurfaceView by lazy { SurfaceViewWindow(mContext) }
 
@@ -37,13 +36,29 @@ class FingerprintWindowController(mContext: Context):Controller(mContext){
     }
 
     override fun onStart(service: NubiaSystemUIService) {
+        checkThread()
         Log.i(TAG, "onStart  service=${service}")
         mSurfaceView.addView()
         mSurfaceView.show()
     }
 
     override fun onStop(service: NubiaSystemUIService) {
+        checkThread()
         mSurfaceView.removeView()
     }
+
+    private fun handleShow(){
+        checkThread()
+    }
+
+    fun show(){
+        NubiaThreadHelper.get().synInvoke(getHandler()){
+            handleShow()
+        }
+    }
+    fun downAnimation(){}
+    fun upAnimation(){}
+    fun hide(){}
+
 
 }
