@@ -2,6 +2,7 @@ package cn.nubia.systemui.fingerprint
 
 import android.content.Context
 import android.graphics.PointF
+import android.os.Trace
 import android.os.VibrationEffect
 import android.os.Vibrator
 import android.util.Log
@@ -53,6 +54,13 @@ fun vibrator(milliseconds:Long, amplitude:Int){
 fun getTimeStr():String = DATE_FORMAT.format(Date())
 
 data class InfoLog(val mInfo:String,val mTime:String = getTimeStr())
+
+
+fun traceLog(log:String){
+    Trace.beginSection("${NubiaSystemUIApplication.TAG}.${log}")
+    Log.i(NubiaSystemUIApplication.TAG,"traceLog log=${log}")
+    Trace.endSection()
+}
 
 class PointUtil{
     companion object {

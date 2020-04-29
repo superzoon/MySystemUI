@@ -6,6 +6,7 @@ import android.util.Log
 import cn.nubia.systemui.NubiaSystemUIApplication
 import cn.nubia.systemui.fingerprint.FingerprintController
 import cn.nubia.systemui.NubiaThreadHelper
+import cn.nubia.systemui.fingerprint.process.ActionList.ActionKey
 import cn.nubia.systemui.common.BiometricCmd
 import cn.nubia.systemui.common.FingerprintInfo
 import cn.nubia.systemui.common.processCmd
@@ -17,11 +18,11 @@ import java.io.PrintWriter
 abstract class  FingerprintProcess(val mContext:Context, val mFingerprintController:FingerprintController,
                                    val mWindowController: FingerprintWindowController){
     val TAG by lazy { "${NubiaSystemUIApplication.TAG}.${this.javaClass.simpleName}"}
-
+    val mThreadHelper = NubiaThreadHelper.get()
     val mFingerprintManager :FingerprintManager = mContext.getSystemService(FingerprintManager::class.java)
 
     enum class ProcessState{
-        NORMAL, DOWN, UI_READY, UP
+        NORMAL, DOWNING, DOWN, UI_READYING, UI_READY, UPING, UP
     }
 
     private var mState: ProcessState = ProcessState.NORMAL
@@ -33,34 +34,54 @@ abstract class  FingerprintProcess(val mContext:Context, val mFingerprintControl
             }
         }
 
-    fun onTouchDown() = when(mState){
-        ProcessState.NORMAL ,ProcessState.UP  -> {
-            mState = ProcessState.DOWN
-            mFingerprintManager.processCmd(BiometricCmd.CMD_DOWN, 0, 0 , byteArrayOf(), 0)
-            mFingerprintController.addHbmAction(object :Action(""){
-                override fun run() {
-                    super.run()
-                }
-            })
-            NubiaThreadHelper.get().apply {
-                getBgHander().post {
+    fun onTouchDown() {
+        when(mState){
+            ProcessState.UPING  ->{
+
+                mState = ProcessState.UP
+            }
+            ProcessState.NORMAL ,ProcessState.UP  -> {
+                mState = ProcessState.DOWNING
+
+                mFingerprintController.mActionList.addHbmAction(object : Action("down") {
+                    override fun run() {
+                        Log.i(TAG, "HBM ok")
+                    }
+                })
+                mThreadHelper.getBgHander().post {
+                    mFingerprintManager.processCmd(BiometricCmd.CMD_DOWN, 0, 0 , byteArrayOf(), 0)
                     setHBM(true)
-                    synFingerprint{
-                        mFingerprintController.onHbmEnable(true)
+                    mThreadHelper.synFingerprint{
+                        if(mState == ProcessState.DOWNING){
+                            mFingerprintController.onHbmEnable(true)
+                            mState = ProcessState.DOWN
+                        }
                     }
                 }
             }
-        }
-        else -> {
-            Log.w(TAG, "onTouchDown, but current state = ${mState}")
+            else -> {
+                Log.w(TAG, "onTouchDown, but current state = ${mState}")
+            }
         }
     }
 
-    fun onUiReady(){
+    fun callUiReady(){
         when(mState){
-            ProcessState.DOWN -> {
+            ProcessState.DOWNING  ->{
+
                 mState = ProcessState.UI_READY
-                mFingerprintManager.processCmd(BiometricCmd.CMD_UI_READY, 0, 0 , byteArrayOf(), 0)
+            }
+            ProcessState.DOWN -> {
+                mState = ProcessState.UI_READYING
+
+                mThreadHelper.getBgHander().post {
+                    mFingerprintManager.processCmd(BiometricCmd.CMD_UI_READY, 0, 0 , byteArrayOf(), 0)
+                    mThreadHelper.synFingerprint{
+                        if(mState == ProcessState.UI_READYING){
+                            mState = ProcessState.UI_READY
+                        }
+                    }
+                }
             }
             else -> {
                 Log.w(TAG, "onUiReady, but current state = ${mState}")
@@ -70,15 +91,20 @@ abstract class  FingerprintProcess(val mContext:Context, val mFingerprintControl
 
     fun onTouchUp(){
         when(mState){
-            ProcessState.UI_READY -> {
-                mState = ProcessState.UP
-                mFingerprintManager.processCmd(BiometricCmd.CMD_UP, 0, 0 , byteArrayOf(), 0)
+            ProcessState.UI_READYING  ->{
 
-                NubiaThreadHelper.get().apply {
-                    getBgHander().post {
-                        setHBM(false)
-                        synFingerprint{
+                mState = ProcessState.UPING
+            }
+            ProcessState.UI_READY -> {
+                mState = ProcessState.UPING
+
+                mThreadHelper.getBgHander().post {
+                    mFingerprintManager.processCmd(BiometricCmd.CMD_UP, 0, 0 , byteArrayOf(), 0)
+                    setHBM(false)
+                    mThreadHelper.synFingerprint{
+                        if(mState == ProcessState.UPING){
                             mFingerprintController.onHbmEnable(false)
+                            mState = ProcessState.UP
                         }
                     }
                 }

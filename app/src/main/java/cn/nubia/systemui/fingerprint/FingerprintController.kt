@@ -28,7 +28,7 @@ class FingerprintController(mContext:Context):Controller(mContext), Dump {
 
     private val mWindowController by lazy { getController(FingerprintWindowController::class.java) }
 
-    val mActionList = ActionList()
+    val mActionList = ActionList(this)
     private var isConnection = false
     private var mSystemUI: SystemUI? = null
     private var mDisplayState: Int = Display.STATE_UNKNOWN
@@ -256,21 +256,14 @@ class FingerprintController(mContext:Context):Controller(mContext), Dump {
         mCurrentProcess?.onStopAuth()
     }
 
-    fun addHbmAction(flowAction: Action) {
-        checkThread()
-        if(flowAction !in mActionList[ActionKey.KEY_SCREEN_HBM]){
-            mActionList[ActionKey.KEY_SCREEN_HBM].add(flowAction)
-        }
-    }
-
+    var isHbm = false
     fun onHbmEnable(enbale: Boolean) {
         checkThread()
-        if(enbale){
-            mActionList[ActionKey.KEY_SCREEN_HBM].removeAll{
-                it.invoke()
-            }
+        isHbm = enbale
+        if(isHbm){
+            mActionList.invoke(ActionKey.KEY_SCREEN_HBM)
         }
-        mCurrentProcess?.onUiReady()
+        mCurrentProcess?.callUiReady()
     }
 
 }

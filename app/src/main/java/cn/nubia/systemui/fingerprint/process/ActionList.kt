@@ -1,10 +1,11 @@
 package cn.nubia.systemui.fingerprint.process
 
 import android.view.Display
+import cn.nubia.systemui.common.Controller
 import java.lang.AssertionError
 
 
-class ActionList {
+class ActionList (val controller: Controller){
     class ActionKey{
         companion object {
             val KEY_SCREEN_OFF = Display.STATE_OFF
@@ -34,11 +35,75 @@ class ActionList {
             ActionKey.KEY_SCREEN_HBM to SCREEN_HBM_ACTIONS
     )
 
-
     operator fun get(key: Int): MutableList<Action> {
         return when(key){
             in ActionKey -> mProcessAction[key]!!
             else -> throw AssertionError("no key=${key} in list")
+        }
+    }
+
+    fun addDozeAction(flowAction: Action) {
+        controller.checkThread()
+        addAction(ActionKey.KEY_SCREEN_DOZE, flowAction)
+    }
+
+    fun addScreenOffAction(flowAction: Action) {
+        controller.checkThread()
+        addAction(ActionKey.KEY_SCREEN_OFF, flowAction)
+    }
+
+    fun addScreenOnAction(flowAction: Action) {
+        controller.checkThread()
+        addAction(ActionKey.KEY_SCREEN_ON, flowAction)
+    }
+
+    fun addHbmAction(flowAction: Action) {
+        controller.checkThread()
+        addAction(ActionKey.KEY_SCREEN_HBM, flowAction)
+    }
+
+    fun addAction(key:Int, flowAction: Action) {
+        controller.checkThread()
+        if(flowAction !in this[key]){
+            this[key].add(flowAction)
+        }
+    }
+
+    fun removeDozeAction(flowAction: Action){
+        controller.checkThread()
+        removeAction(ActionKey.KEY_SCREEN_DOZE, flowAction)
+    }
+
+    fun removeScreenOffAction(flowAction: Action) {
+        controller.checkThread()
+        removeAction(ActionKey.KEY_SCREEN_OFF, flowAction)
+    }
+
+    fun removeScreenOnAction(flowAction: Action) {
+        controller.checkThread()
+        removeAction(ActionKey.KEY_SCREEN_ON, flowAction)
+    }
+
+    fun removeHbmAction(flowAction: Action) {
+        controller.checkThread()
+        removeAction(ActionKey.KEY_SCREEN_HBM, flowAction)
+    }
+
+    fun removeAction(key:Int, flowAction: Action) {
+        controller.checkThread()
+        if(flowAction in this[key]){
+            this[key].remove(flowAction)
+        }
+    }
+
+    fun clearAction(key:Int) {
+        controller.checkThread()
+        this[key].clear()
+    }
+
+    fun invoke(key:Int){
+        this[ActionKey.KEY_SCREEN_HBM].removeAll{
+            it.invoke()
         }
     }
 }
