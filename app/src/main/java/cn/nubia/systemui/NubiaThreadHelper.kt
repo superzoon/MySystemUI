@@ -100,7 +100,6 @@ class NubiaThreadHelper private constructor():Dump{
 
     fun <T> synMainInvoke(action: ()->T):T? = synInvoke(mMainHandler, action)
 
-
     fun <T> synInvoke(handler: Handler, action: ()->T):T?{
         return  if (Thread.currentThread() == handler.looper.thread){
             action.invoke()
@@ -136,6 +135,20 @@ class NubiaThreadHelper private constructor():Dump{
             }finally {
                 peekQueue(queue)
             }
+        }
+    }
+
+    fun handlerBackground(action: ()->Unit) = handlerInvoke(mBackgroundHandler, action)
+
+    fun handlerFingerprint(action: ()->Unit) = handlerInvoke(mFingerprintHandler, action)
+
+    fun handlerMain(action: ()->Unit) = handlerInvoke(mMainHandler, action)
+
+    fun handlerInvoke(handler: Handler, action: ()->Unit){
+        if (Thread.currentThread() == handler.looper.thread){
+            action.invoke()
+        }else{
+            handler.post(action)
         }
     }
 

@@ -3,22 +3,26 @@ package cn.nubia.systemui.fingerprint
 import android.content.Context
 import android.os.Handler
 import android.util.Log
+import android.view.View
 import cn.nubia.systemui.NubiaSystemUIApplication
 import cn.nubia.systemui.NubiaSystemUIService
 import cn.nubia.systemui.NubiaThreadHelper
+import cn.nubia.systemui.R
 import cn.nubia.systemui.common.Controller
 import cn.nubia.systemui.fingerprint.ui.SurfaceViewWindow
+import cn.nubia.systemui.fingerprint.view.IconView
 
-class FingerprintWindowController(mContext: Context):Controller(mContext){
+class FingerprintWindowController(mContext: Context):Controller(mContext), IconView.Callback {
+
     val mHandler = NubiaThreadHelper.get().getMainHander()
+    val mThreadHelper = NubiaThreadHelper.get()
     val mFingerprintController by lazy { getController(FingerprintController::class.java) }
-    val mSurfaceView by lazy { SurfaceViewWindow(mContext) }
-
+    val mIconView:IconView by lazy { View.inflate(mContext, R.layout.fingerprint_icon_view, null) as IconView }
     interface Callback{
         fun onShow()
         fun onHide()
-        fun onDown()
-        fun onUp()
+        fun onFingerDown()
+        fun onFingerUp()
     }
     companion object {
         val TAG = "${NubiaSystemUIApplication.TAG}.WindowControl"
@@ -30,6 +34,31 @@ class FingerprintWindowController(mContext: Context):Controller(mContext){
             field = value
         }
 
+    init {
+        mHandler.post{
+            mIconView.setCallback(FingerprintWindowController@this)
+        }
+    }
+
+    override fun onFingerDown() {
+        checkThread()
+        mCallback?.onFingerDown()
+    }
+
+    override fun onFingerUp() {
+        checkThread()
+        mCallback?.onFingerUp()
+    }
+
+    fun showFingerDownImage(){
+        checkThread()
+        mIconView.showFingerDownImage()
+    }
+
+    fun showFingerUpImage(){
+        checkThread()
+        mIconView.showFingerUpImage()
+    }
 
     override fun getHandler(): Handler {
         return mHandler
@@ -38,13 +67,10 @@ class FingerprintWindowController(mContext: Context):Controller(mContext){
     override fun onStart(service: NubiaSystemUIService) {
         checkThread()
         Log.i(TAG, "onStart  service=${service}")
-        mSurfaceView.addView()
-        mSurfaceView.show()
     }
 
     override fun onStop(service: NubiaSystemUIService) {
         checkThread()
-        mSurfaceView.removeView()
     }
 
     private fun handleShow(){
@@ -56,9 +82,8 @@ class FingerprintWindowController(mContext: Context):Controller(mContext){
             handleShow()
         }
     }
+
     fun downAnimation(){}
     fun upAnimation(){}
     fun hide(){}
-
-
 }

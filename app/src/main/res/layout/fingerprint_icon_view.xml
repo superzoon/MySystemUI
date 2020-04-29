@@ -4,8 +4,8 @@
         xmlns:app="http://schemas.android.com/apk/res/cn.nubia.systemui"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        app:iconDrawable="@android:drawable/ic_menu_add"
-        app:highlightDrawable="@android:drawable/ic_menu_add">
+        app:normalDrawable="@drawable/fingerprint_icon_normal"
+        app:pressDrawable="@drawable/fingerprint_icon_view_press">
 
     <ImageView
             android:id="@+id/fingerprint_icon_view"

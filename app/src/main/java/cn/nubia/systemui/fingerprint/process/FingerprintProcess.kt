@@ -2,6 +2,7 @@ package cn.nubia.systemui.fingerprint.process
 
 import android.content.Context
 import android.hardware.fingerprint.FingerprintManager
+import android.os.SystemClock
 import android.util.Log
 import cn.nubia.systemui.NubiaSystemUIApplication
 import cn.nubia.systemui.fingerprint.FingerprintController
@@ -25,12 +26,16 @@ abstract class  FingerprintProcess(val mContext:Context, val mFingerprintControl
         NORMAL, DOWNING, DOWN, UI_READYING, UI_READY, UPING, UP
     }
 
-    private var mState: ProcessState = ProcessState.NORMAL
-        get() = field
-        set(value) {
-            if(field!=value){
+    private var _STATE_: ProcessState = ProcessState.NORMAL
+    private var mStateChangeTime = SystemClock.elapsedRealtime()
+
+    private var mState
+        get() = _STATE_
+        private set(value) {
+            if(_STATE_!=value){
                 Log.i(TAG, "process state change")
-                field=value
+                mStateChangeTime = SystemClock.elapsedRealtime()
+                _STATE_=value
             }
         }
 
@@ -43,6 +48,9 @@ abstract class  FingerprintProcess(val mContext:Context, val mFingerprintControl
             ProcessState.NORMAL ,ProcessState.UP  -> {
                 mState = ProcessState.DOWNING
 
+                mThreadHelper.synInvoke(mWindowController.mHandler){
+                    mWindowController.showFingerDownImage()
+                }
                 mFingerprintController.mActionList.addHbmAction(object : Action("down") {
                     override fun run() {
                         Log.i(TAG, "HBM ok")
@@ -73,7 +81,6 @@ abstract class  FingerprintProcess(val mContext:Context, val mFingerprintControl
             }
             ProcessState.DOWN -> {
                 mState = ProcessState.UI_READYING
-
                 mThreadHelper.getBgHander().post {
                     mFingerprintManager.processCmd(BiometricCmd.CMD_UI_READY, 0, 0 , byteArrayOf(), 0)
                     mThreadHelper.synFingerprint{
@@ -98,6 +105,9 @@ abstract class  FingerprintProcess(val mContext:Context, val mFingerprintControl
             ProcessState.UI_READY -> {
                 mState = ProcessState.UPING
 
+                mThreadHelper.synInvoke(mWindowController.mHandler){
+                    mWindowController.showFingerUpImage()
+                }
                 mThreadHelper.getBgHander().post {
                     mFingerprintManager.processCmd(BiometricCmd.CMD_UP, 0, 0 , byteArrayOf(), 0)
                     setHBM(false)

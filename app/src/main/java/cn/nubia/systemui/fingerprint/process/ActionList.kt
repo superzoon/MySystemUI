@@ -1,25 +1,32 @@
 package cn.nubia.systemui.fingerprint.process
 
+import android.support.annotation.IntDef
 import android.view.Display
 import cn.nubia.systemui.common.Controller
 import java.lang.AssertionError
 
+class ActionList(val controller: Controller) {
 
-class ActionList (val controller: Controller){
-    class ActionKey{
+    @IntDef(value = longArrayOf(ActionKey.KEY_SCREEN_OFF.toLong(),
+            ActionKey.KEY_SCREEN_ON.toLong(),
+            ActionKey.KEY_SCREEN_DOZE.toLong(),
+            ActionKey.KEY_SCREEN_HBM.toLong()))
+    @Retention(AnnotationRetention.SOURCE)
+    annotation class KeyInt
+
+    class ActionKey {
         companion object {
             val KEY_SCREEN_OFF = Display.STATE_OFF
             val KEY_SCREEN_ON = Display.STATE_ON
             val KEY_SCREEN_DOZE = Display.STATE_DOZE
             val KEY_SCREEN_HBM = 1.shl(4)
 
-            operator fun contains(key:Int):Boolean{
-                return (key == KEY_SCREEN_OFF) or
-                        (key <= KEY_SCREEN_ON)or
-                        (key <= KEY_SCREEN_DOZE)or
+            operator fun contains(key: Int): Boolean {
+                return (key == KEY_SCREEN_OFF) ||
+                        (key <= KEY_SCREEN_ON) ||
+                        (key <= KEY_SCREEN_DOZE) ||
                         (key <= KEY_SCREEN_HBM)
             }
-
         }
     }
 
@@ -35,8 +42,8 @@ class ActionList (val controller: Controller){
             ActionKey.KEY_SCREEN_HBM to SCREEN_HBM_ACTIONS
     )
 
-    operator fun get(key: Int): MutableList<Action> {
-        return when(key){
+    operator fun get(@KeyInt key: Int): MutableList<Action> {
+        return when (key) {
             in ActionKey -> mProcessAction[key]!!
             else -> throw AssertionError("no key=${key} in list")
         }
@@ -62,14 +69,14 @@ class ActionList (val controller: Controller){
         addAction(ActionKey.KEY_SCREEN_HBM, flowAction)
     }
 
-    fun addAction(key:Int, flowAction: Action) {
+    fun addAction(@KeyInt key: Int, flowAction: Action) {
         controller.checkThread()
-        if(flowAction !in this[key]){
+        if (flowAction !in this[key]) {
             this[key].add(flowAction)
         }
     }
 
-    fun removeDozeAction(flowAction: Action){
+    fun removeDozeAction(flowAction: Action) {
         controller.checkThread()
         removeAction(ActionKey.KEY_SCREEN_DOZE, flowAction)
     }
@@ -89,21 +96,25 @@ class ActionList (val controller: Controller){
         removeAction(ActionKey.KEY_SCREEN_HBM, flowAction)
     }
 
-    fun removeAction(key:Int, flowAction: Action) {
+    fun removeAction(@KeyInt key: Int, flowAction: Action) {
         controller.checkThread()
-        if(flowAction in this[key]){
+        if (flowAction in this[key]) {
             this[key].remove(flowAction)
         }
     }
 
-    fun clearAction(key:Int) {
+    fun clearAction(@KeyInt key: Int) {
         controller.checkThread()
         this[key].clear()
     }
 
-    fun invoke(key:Int){
-        this[ActionKey.KEY_SCREEN_HBM].removeAll{
-            it.invoke()
+    fun invoke(@KeyInt key: Int) {
+        if (key in ActionKey) {
+            this[key].removeAll {
+                it.invoke()
+            }
+        } else {
+            throw IllegalAccessError("Illegal key=${key}")
         }
     }
 }

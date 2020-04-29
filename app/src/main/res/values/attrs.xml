@@ -1,6 +1,6 @@
 <resources>
     <declare-styleable name="IconView">
-        <attr name="iconDrawable" format="color|reference"/>
-        <attr name="highlightDrawable" format="color|reference"/>
+        <attr name="normalDrawable" format="color|reference"/>
+        <attr name="pressDrawable" format="color|reference"/>
     </declare-styleable>
 </resources>

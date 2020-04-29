@@ -59,13 +59,13 @@ class FingerprintController(mContext:Context):Controller(mContext), Dump {
             }
         }
 
-        override fun onDown() {
+        override fun onFingerDown() {
             mHandler.post {
                 this@FingerprintController.onFingerprintDown()
             }
         }
 
-        override fun onUp() {
+        override fun onFingerUp() {
             mHandler.post {
                 this@FingerprintController.onFingerprintUp()
             }

@@ -44,8 +44,6 @@ abstract class Controller(val mContext:Context):Dump {
 
     fun <T:Controller> getController(name:Class<T>) :T = Controller.getController(name)
 
-    fun getContext()=mContext
-
     fun checkThread(){
         if("user" != Build.TYPE && !getHandler().looper.isCurrentThread){
             throw IllegalAccessError("not run in ${getHandler().looper.thread.name}")
