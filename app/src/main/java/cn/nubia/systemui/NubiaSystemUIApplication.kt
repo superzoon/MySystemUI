@@ -28,15 +28,6 @@ class NubiaSystemUIApplication: Application() {
     override fun onConfigurationChanged(newConfig: Configuration) {
         super.onConfigurationChanged(newConfig)
         Controller.forEach { it.callConfigurationChanged(newConfig) }
-        checkKeyboard()
-    }
-
-    fun checkKeyboard(){
-        if(resources.configuration.hardKeyboardHidden!=mHardKeyboardHidden){
-            mHardKeyboardHidden = resources.configuration.hardKeyboardHidden
-            Log.e(TAG, "onCreate keyboard=${resources.configuration.keyboard} hardKeyboardHidden=${resources.configuration.keyboardHidden} keyboardHidden=${resources.configuration.keyboardHidden}")
-            UpdateMonitor.get().callKeyboardChange(resources.configuration.hardKeyboardHidden)
-        }
     }
 
 }

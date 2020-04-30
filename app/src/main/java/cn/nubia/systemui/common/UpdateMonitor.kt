@@ -40,7 +40,7 @@ class UpdateMonitor private constructor():Dump{
     private val mInfoList = arrayOfNulls<InfoStr>(40)
     private var mIndexForInfo = 0
     private var mSystemUI:SystemUI? = null
-    var mOldBiometricAttrFlages = 0
+    var mBiometricAttrFlages = 0
     private val mContext by lazy {
         NubiaSystemUIApplication.getContext()
     }
@@ -62,11 +62,13 @@ class UpdateMonitor private constructor():Dump{
         fun onStartGoingToSleep(reason:Int){}
         fun onFinishedGoingToSleep(){}
         fun onFingerprintKeycode(keycode:Int){}
+        fun onPhoneStateChange(state:Int, phoneNumber: String?){}
     }
 
     val mPhoneStateListener = object :PhoneStateListener(){
         override fun onCallStateChanged(state: Int, phoneNumber: String?) {
             super.onCallStateChanged(state, phoneNumber)
+            UpdateMonitor.get().callPhoneStateChange(state, phoneNumber)
         }
     }
 
@@ -103,6 +105,34 @@ class UpdateMonitor private constructor():Dump{
         mTelephonyManager.listen(mPhoneStateListener, PhoneStateListener.LISTEN_CALL_STATE)
         mHandler.post{UpdateMonitor.get().callDisplayChange(Display.DEFAULT_DISPLAY, mDisplayManager.getDisplay(Display.DEFAULT_DISPLAY).state)}
     }
+
+    fun getSystemUI():SystemUI? = mSystemUI
+
+    fun getDisplayState():Int = getDisplayState(Display.DEFAULT_DISPLAY)
+
+    fun getDisplayState(displayId:Int):Int = mDisplayStateMap.getOrDefault(displayId, Display.STATE_UNKNOWN)
+
+    var isAodViewShow = false
+        private set(value) {field = value}
+
+    var mKeyguardShow = false
+        private set(value) {field = value}
+
+    var isOccluded = false
+        private set(value) {field = value}
+
+    var isWakeUp = false
+        private set(value) {field = value}
+
+    var mCurrentActivity: ComponentName? = null
+        private set(value) {field = value}
+
+    var mCurrentWindow: ComponentName? = null
+        private set(value) {field = value}
+
+    var mPhoneState = TelephonyManager.CALL_STATE_IDLE
+        private set(value) {field = value}
+
 
     fun callSystemUIDisConnect(){
         mHandler.post{
@@ -206,9 +236,10 @@ class UpdateMonitor private constructor():Dump{
 
     private fun callBiometricAttrFlagesChange(flages:Int){
         if(BiometricShowFlagesConstant.isValidState(flages)){
-            if(mOldBiometricAttrFlages != flages){
-                mOldBiometricAttrFlages = flages
-                Log.i(TAG, "biometric attr flages change = ${BiometricShowFlagesConstant.flagsToString(flages)}")
+            if(mBiometricAttrFlages != flages){
+                mBiometricAttrFlages = flages
+                var canShow = BiometricShowFlagesConstant.canShowFingerprint(flages)
+                Log.i(TAG, "biometric attr flages change = ${BiometricShowFlagesConstant.flagsToString(flages)} canShow=${canShow}")
             }
         }else{
             throw IllegalAccessError("error biometric attr flages change, flages = ${flages}")
@@ -224,11 +255,14 @@ class UpdateMonitor private constructor():Dump{
         }
     }
 
-    fun getSystemUI():SystemUI? = mSystemUI
-
-    fun getDisplayState():Int = getDisplayState(Display.DEFAULT_DISPLAY)
-
-    fun getDisplayState(displayId:Int):Int = mDisplayStateMap.getOrDefault(displayId, Display.STATE_UNKNOWN)
+    private fun callPhoneStateChange(state: Int, phoneNumber: String?) {
+        mHandler.post{
+            mPhoneState = state
+            mList.forEach{
+                it.get()?.onPhoneStateChange(state, phoneNumber)
+            }
+        }
+    }
 
     fun callDisplayChange(displayId:Int, state:Int){
         if(!(mDisplayStateMap.containsKey(displayId) && mDisplayStateMap.get(displayId)==state)){
@@ -269,18 +303,16 @@ class UpdateMonitor private constructor():Dump{
     fun callFocusWindowChange(name: ComponentName) {
 
         mHandler.post{
+            mCurrentWindow = name
             mList.forEach{
                 it.get()?.onFocusWindowChange(name)
             }
         }
     }
 
-    fun callKeyboardChange(new:Int){
-        Log.e(TAG, "callKeyboardChange ${new}")
-    }
-
     fun callStartActivity(name: ComponentName) {
         mHandler.post{
+            mCurrentActivity = name
             mList.forEach{
                 it.get()?.onStartActivity(name)
             }
@@ -297,6 +329,7 @@ class UpdateMonitor private constructor():Dump{
 
     fun callAodViewChange(show: Boolean) {
         mHandler.post{
+            isAodViewShow = show
             mList.forEach{
                 it.get()?.onAodViewChange(show)
             }
@@ -305,6 +338,8 @@ class UpdateMonitor private constructor():Dump{
 
     fun callKeyguardChange(show: Boolean, occluded: Boolean) {
         mHandler.post{
+            mKeyguardShow = show
+            isOccluded = occluded
             mList.forEach{
                 it.get()?.onKeyguardChange(show, occluded)
             }
@@ -313,6 +348,7 @@ class UpdateMonitor private constructor():Dump{
 
     fun callStartWakingUp() {
         mHandler.post{
+            isWakeUp = true
             mList.forEach{
                 it.get()?.onStartWakingUp()
             }
@@ -329,6 +365,7 @@ class UpdateMonitor private constructor():Dump{
 
     fun callStartGoingToSleep(reason: Int) {
         mHandler.post{
+            isWakeUp = false
             mList.forEach{
                 it.get()?.onStartGoingToSleep(reason)
             }
