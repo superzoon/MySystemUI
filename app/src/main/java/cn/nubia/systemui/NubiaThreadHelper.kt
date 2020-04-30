@@ -64,6 +64,7 @@ class NubiaThreadHelper private constructor():Dump{
             Log.i(TAG, it)
         }
     }
+
     fun getMainHander():Handler{
         return mMainHandler
     }

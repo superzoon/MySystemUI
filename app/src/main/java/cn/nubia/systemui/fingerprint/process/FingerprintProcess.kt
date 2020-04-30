@@ -29,7 +29,7 @@ abstract class  FingerprintProcess(val mContext:Context, val mFingerprintControl
     private var _STATE_: ProcessState = ProcessState.NORMAL
     private var mStateChangeTime = SystemClock.elapsedRealtime()
 
-    private var mState
+    var mState
         get() = _STATE_
         private set(value) {
             if(_STATE_!=value){
@@ -40,27 +40,27 @@ abstract class  FingerprintProcess(val mContext:Context, val mFingerprintControl
         }
 
     fun onTouchDown() {
-        when(mState){
-            ProcessState.UPING  ->{
-
+        when (mState) {
+            ProcessState.UPING -> {
+                //待处理项
                 mState = ProcessState.UP
             }
-            ProcessState.NORMAL ,ProcessState.UP  -> {
+            ProcessState.NORMAL, ProcessState.UP -> {
                 mState = ProcessState.DOWNING
 
-                mThreadHelper.synInvoke(mWindowController.mHandler){
+                mThreadHelper.synInvoke(mWindowController.mHandler) {
                     mWindowController.showFingerDownImage()
                 }
-                mFingerprintController.mActionList.addHbmAction(object : Action("down") {
-                    override fun run() {
-                        Log.i(TAG, "HBM ok")
-                    }
+
+                mFingerprintController.mActionList.addHbmAction(ActionList.Action("down"){
+                    Log.w(TAG, "hbm")
                 })
+
                 mThreadHelper.getBgHander().post {
-                    mFingerprintManager.processCmd(BiometricCmd.CMD_DOWN, 0, 0 , byteArrayOf(), 0)
+                    mFingerprintManager.processCmd(BiometricCmd.CMD_DOWN, 0, 0, byteArrayOf(), 0)
                     setHBM(true)
-                    mThreadHelper.synFingerprint{
-                        if(mState == ProcessState.DOWNING){
+                    mThreadHelper.synFingerprint {
+                        if (mState == ProcessState.DOWNING) {
                             mFingerprintController.onHbmEnable(true)
                             mState = ProcessState.DOWN
                         }
@@ -76,7 +76,7 @@ abstract class  FingerprintProcess(val mContext:Context, val mFingerprintControl
     fun callUiReady(){
         when(mState){
             ProcessState.DOWNING  ->{
-
+                //待处理项
                 mState = ProcessState.UI_READY
             }
             ProcessState.DOWN -> {
@@ -99,7 +99,7 @@ abstract class  FingerprintProcess(val mContext:Context, val mFingerprintControl
     fun onTouchUp(){
         when(mState){
             ProcessState.UI_READYING  ->{
-
+                //待处理项
                 mState = ProcessState.UPING
             }
             ProcessState.UI_READY -> {

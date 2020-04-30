@@ -5,7 +5,7 @@
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         app:normalDrawable="@drawable/fingerprint_icon_normal"
-        app:pressDrawable="@drawable/fingerprint_icon_view_press">
+        app:pressDrawable="@drawable/fingerprint_icon_press">
 
     <ImageView
             android:id="@+id/fingerprint_icon_view"

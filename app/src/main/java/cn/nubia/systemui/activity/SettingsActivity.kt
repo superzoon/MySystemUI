@@ -6,6 +6,7 @@ import android.content.ComponentName
 import android.content.Context
 import android.content.Intent
 import android.content.ServiceConnection
+import android.graphics.drawable.VectorDrawable
 import android.os.Bundle
 import android.os.IBinder
 import android.util.Log
@@ -26,6 +27,9 @@ class SettingsActivity : Activity(),ServiceConnection {
         }
         // Example of a call to a native method
         //sample_text.text = stringFromJNI()
+        (getDrawable(R.drawable.ic_launcher_background) as VectorDrawable).apply {
+
+        }
     }
 
     override fun onServiceDisconnected(name: ComponentName?) {

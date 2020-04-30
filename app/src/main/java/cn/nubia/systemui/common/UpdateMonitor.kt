@@ -15,8 +15,7 @@ import cn.nubia.systemui.NubiaSystemUIApplication
 import cn.nubia.systemui.fingerprint.NubiaBiometricMonitor
 import cn.nubia.systemui.fingerprint.SystemBiometricMonitor
 import cn.nubia.systemui.NubiaThreadHelper
-import cn.nubia.systemui.fingerprint.InfoLog
-import cn.nubia.systemui.fingerprint.getTimeStr
+import cn.nubia.systemui.fingerprint.InfoStr
 import java.io.FileDescriptor
 import java.io.PrintWriter
 import java.lang.NumberFormatException
@@ -38,7 +37,7 @@ class UpdateMonitor private constructor():Dump{
     private val mHandler = Handler(Looper.getMainLooper());
     private val mList = mutableListOf<Reference<UpdateMonitorCallback>>()
     private val mDisplayStateMap = mutableMapOf<Int, Int>()
-    private val mInfoList = arrayOfNulls<InfoLog>(40)
+    private val mInfoList = arrayOfNulls<InfoStr>(40)
     private var mIndexForInfo = 0
     private var mSystemUI:SystemUI? = null
     var mOldBiometricAttrFlages = 0
@@ -157,7 +156,7 @@ class UpdateMonitor private constructor():Dump{
             else -> {
                 if(data.containsKey("info")){
                     data.getString("info")?.also {
-                        mInfoList[mIndexForInfo++]=InfoLog(it)
+                        mInfoList[mIndexForInfo++]=InfoStr(it)
                         it.split("_")?.apply {
                             val indexStr = get(0)
                             when(indexStr){

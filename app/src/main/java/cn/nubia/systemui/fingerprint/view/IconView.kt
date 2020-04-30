@@ -60,7 +60,7 @@ class IconView : FrameLayout, View.OnTouchListener {
         if (a.hasValue(R.styleable.IconView_pressDrawable)) {
             mPressDrawable = a.getDrawable(R.styleable.IconView_pressDrawable)
         } else {
-            mNormalDrawable = resources.getDrawable(R.drawable.fingerprint_icon_view_press, context.theme)
+            mNormalDrawable = resources.getDrawable(R.drawable.fingerprint_icon_press, context.theme)
         }
         a.recycle()
 

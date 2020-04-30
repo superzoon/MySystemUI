@@ -7,12 +7,28 @@ import java.lang.AssertionError
 
 class ActionList(val controller: Controller) {
 
+    class Action(val name:String, val action:()->Unit):Runnable{
+        override fun run() {
+            action()
+        }
+
+        fun invoke():Boolean{
+            run()
+            return true
+        }
+
+        override fun toString(): String {
+            return "${name} -> ${action}"
+        }
+    }
+
     @IntDef(value = longArrayOf(ActionKey.KEY_SCREEN_OFF.toLong(),
             ActionKey.KEY_SCREEN_ON.toLong(),
             ActionKey.KEY_SCREEN_DOZE.toLong(),
             ActionKey.KEY_SCREEN_HBM.toLong()))
     @Retention(AnnotationRetention.SOURCE)
     annotation class KeyInt
+
 
     class ActionKey {
         companion object {
@@ -118,3 +134,4 @@ class ActionList(val controller: Controller) {
         }
     }
 }
+
