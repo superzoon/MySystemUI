@@ -30,6 +30,7 @@ class FingerprintController(mContext:Context):Controller(mContext), Dump {
 
     val mActionList = ActionList(this)
     private var isConnection = false
+    private var isFingerDown = false
     private var mSystemUI: SystemUI? = null
     private var mDisplayState: Int = Display.STATE_UNKNOWN
     private var mDisplayStateStr: String = "STATE_UNKNOWN"
@@ -136,11 +137,6 @@ class FingerprintController(mContext:Context):Controller(mContext), Dump {
                 this@FingerprintController.onDisplayChange(displayId, state, stateStr)
             }
         }
-
-        override fun onFingerprintKeycode(keycode: Int) {
-            log("onFingerprintKeycode keycode=${keycode}")
-        }
-
     }
 
     override fun getHandler(): Handler {
@@ -183,28 +179,34 @@ class FingerprintController(mContext:Context):Controller(mContext), Dump {
 
     fun onFingerprintDown() {
         checkThread()
-        when (mDisplayState) {
-            Display.STATE_OFF -> {
-                mCurrentProcess = ScreenOffProcess(mContext,this, mWindowController)
+        if(!isFingerDown){
+            isFingerDown = true
+            when (mDisplayState) {
+                Display.STATE_OFF -> {
+                    mCurrentProcess = ScreenOffProcess(mContext,this, mWindowController)
+                }
+                Display.STATE_ON -> {
+                    mCurrentProcess = ScreenOnProcess(mContext,this, mWindowController)
+                }
+                Display.STATE_DOZE, Display.STATE_DOZE_SUSPEND -> {
+                    mCurrentProcess = ScreenAodProcess(mContext,this, mWindowController)
+                }
+                else -> {
+                    mCurrentProcess = null
+                }
             }
-            Display.STATE_ON -> {
-                mCurrentProcess = ScreenOnProcess(mContext,this, mWindowController)
-            }
-            Display.STATE_DOZE, Display.STATE_DOZE_SUSPEND -> {
-                mCurrentProcess = ScreenAodProcess(mContext,this, mWindowController)
-            }
-            else -> {
-                mCurrentProcess = null
-            }
+            mCurrentProcess?.onTouchDown()
         }
-        mCurrentProcess?.onTouchDown()
     }
 
     fun onFingerprintUp() {
         checkThread()
-        mCurrentProcess?.onTouchUp()
-        mOldProcess = mCurrentProcess
-        mCurrentProcess = null
+        if(isFingerDown){
+            isFingerDown = false
+            mCurrentProcess?.onTouchUp()
+            mOldProcess = mCurrentProcess
+            mCurrentProcess = null
+        }
     }
 
     override fun dump(fd: FileDescriptor?, writer: PrintWriter?, args: Array<out String>?) {

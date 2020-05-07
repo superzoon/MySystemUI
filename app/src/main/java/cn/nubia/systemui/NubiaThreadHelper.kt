@@ -8,8 +8,7 @@ import android.util.Log
 import android.util.PrintWriterPrinter
 import cn.nubia.systemui.NubiaSystemUIApplication.Companion.TAG
 import cn.nubia.systemui.common.Dump
-import java.io.FileDescriptor
-import java.io.PrintWriter
+import java.io.*
 import java.util.*
 import java.util.concurrent.LinkedBlockingQueue
 
@@ -18,7 +17,6 @@ class NubiaThreadHelper private constructor():Dump{
 
     private val mMainHandler:Handler = Handler(Looper.getMainLooper())
     val mQueueList = LinkedList<Queue<Any>>()
-
     private val mFingerprintHandler:Handler by lazy {
         HandlerThread("FpThread").let {
             it.start()

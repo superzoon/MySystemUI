@@ -1,0 +1,4 @@
+<resources>
+    <string name="tp_action_node">"/sys/kernel/tp_node/finger_state"</string>
+    <string name="tp_mode_node">"/sys/kernel/tp_node/fp_mode"</string>
+</resources>

@@ -12,9 +12,8 @@ class NubiaSystemUIApplication: Application() {
         mContext = this
     }
 
-    var mHardKeyboardHidden = Configuration.KEYBOARDHIDDEN_UNDEFINED
     companion object {
-        val TAG = "NSUI"
+        val TAG = "SysUI"
         private var mContext:NubiaSystemUIApplication?=null
         fun getContext(): Context = mContext!!
     }

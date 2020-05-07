@@ -10,12 +10,15 @@ import android.telephony.PhoneStateListener
 import android.telephony.TelephonyManager
 import android.util.Log
 import android.view.Display
+import android.view.KeyEvent
 import android.view.WindowManager
 import cn.nubia.systemui.NubiaSystemUIApplication
 import cn.nubia.systemui.fingerprint.NubiaBiometricMonitor
 import cn.nubia.systemui.fingerprint.SystemBiometricMonitor
 import cn.nubia.systemui.NubiaThreadHelper
+import cn.nubia.systemui.R
 import cn.nubia.systemui.fingerprint.InfoStr
+import java.io.File
 import java.io.FileDescriptor
 import java.io.PrintWriter
 import java.lang.NumberFormatException
@@ -61,8 +64,9 @@ class UpdateMonitor private constructor():Dump{
         fun onFinishedWakingUp(){}
         fun onStartGoingToSleep(reason:Int){}
         fun onFinishedGoingToSleep(){}
-        fun onFingerprintKeycode(keycode:Int){}
         fun onPhoneStateChange(state:Int, phoneNumber: String?){}
+        fun onFingerUp(){}
+        fun onFingerDown(){}
     }
 
     val mPhoneStateListener = object :PhoneStateListener(){
@@ -104,6 +108,19 @@ class UpdateMonitor private constructor():Dump{
         mDisplayManager.registerDisplayListener(mInternalObj, NubiaThreadHelper.get().getMainHander())
         mTelephonyManager.listen(mPhoneStateListener, PhoneStateListener.LISTEN_CALL_STATE)
         mHandler.post{UpdateMonitor.get().callDisplayChange(Display.DEFAULT_DISPLAY, mDisplayManager.getDisplay(Display.DEFAULT_DISPLAY).state)}
+        File(mContext.getString(R.string.tp_action_node)).monitor {
+            when(it){
+                "finger_down" -> {
+                    callFingerDown()
+                }
+                "finger_up" -> {
+                    callFingerUp()
+                }
+                else -> {
+                    Log.w(TAG,"ERR TP ACTION ${it}")
+                }
+            }
+        }
     }
 
     fun getSystemUI():SystemUI? = mSystemUI
@@ -380,10 +397,38 @@ class UpdateMonitor private constructor():Dump{
         }
     }
 
-    fun callFingerprintKeycode(keycode: Int) {
+    fun callFingerUp() {
         mHandler.post{
             mList.forEach{
-                it.get()?.onFingerprintKeycode(keycode)
+                it.get()?.onFingerUp()
+            }
+        }
+    }
+
+    fun callFingerDown() {
+        mHandler.post{
+            mList.forEach{
+                it.get()?.onFingerDown()
+            }
+        }
+    }
+
+    fun callFingerprintKeycode(keycode: Int) {
+        mHandler.post{
+            when(keycode){
+                KeyEvent.KEYCODE_F11 -> {
+                    mList.forEach {
+                        it.get()?.onFingerDown()
+                    }
+                }
+                KeyEvent.KEYCODE_F12 -> {
+                    mList.forEach{
+                        it.get()?.onFingerUp()
+                    }
+                }
+                else -> {
+                    Log.w(TAG, "ERROR fingerprint keycode ${keycode}")
+                }
             }
         }
     }

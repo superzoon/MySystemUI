@@ -7,12 +7,11 @@ import android.util.Log
 import cn.nubia.systemui.NubiaSystemUIApplication
 import cn.nubia.systemui.fingerprint.FingerprintController
 import cn.nubia.systemui.NubiaThreadHelper
+import cn.nubia.systemui.common.*
 import cn.nubia.systemui.fingerprint.process.ActionList.ActionKey
-import cn.nubia.systemui.common.BiometricCmd
-import cn.nubia.systemui.common.FingerprintInfo
-import cn.nubia.systemui.common.processCmd
 import cn.nubia.systemui.fingerprint.FingerprintWindowController
 import cn.nubia.systemui.fingerprint.setHBM
+import java.io.File
 import java.io.FileDescriptor
 import java.io.PrintWriter
 
