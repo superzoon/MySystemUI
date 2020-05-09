@@ -3,22 +3,18 @@ package cn.nubia.systemui.fingerprint
 import android.content.Context
 import android.os.Handler
 import android.util.Log
-import android.view.Choreographer
 import android.view.Display
 import cn.nubia.systemui.fingerprint.process.ActionList.ActionKey
 import cn.nubia.systemui.NubiaSystemUIApplication
 import cn.nubia.systemui.NubiaSystemUIService
 import cn.nubia.systemui.NubiaThreadHelper
-import cn.nubia.systemui.common.SystemUI
-import cn.nubia.systemui.common.Controller
-import cn.nubia.systemui.common.Dump
-import cn.nubia.systemui.common.UpdateMonitor
+import cn.nubia.systemui.common.*
 import cn.nubia.systemui.fingerprint.process.*
 import java.io.FileDescriptor
 import java.io.PrintWriter
 
 
-class FingerprintController(mContext:Context):Controller(mContext), Dump {
+class FingerprintController(mContext:Context):Controller(mContext), DumpHelper.Dump {
 
     companion object {
         val TAG = "${NubiaSystemUIApplication.TAG}.FingerprintController"
@@ -37,15 +33,6 @@ class FingerprintController(mContext:Context):Controller(mContext), Dump {
     private var mOldProcess: FingerprintProcess? = null
     private var mCurrentProcess: FingerprintProcess? = null
 
-    private val mChoreographer by lazy {
-        NubiaThreadHelper.get().synFingerprintInvoke{
-            Choreographer.getInstance()
-        }!!
-    }
-
-    fun postFrameDelayed(run:(frameTimeNanos:Long)->Unit, delay:Long){
-        mChoreographer.postFrameCallbackDelayed(run, delay)
-    }
     private val mMonitor = object : NubiaBiometricMonitor.UpdateMonitorCallback,
             UpdateMonitor.UpdateMonitorCallback, FingerprintWindowController.Callback {
         override fun onShow() {

@@ -1,11 +1,7 @@
 package cn.nubia.systemui.common
 
-import android.hardware.fingerprint.FingerprintManager
-import android.os.Handler
 import android.util.Log
 import android.view.View
-import android.widget.Button
-import android.widget.EditText
 import cn.nubia.systemui.NubiaSystemUIApplication
 import cn.nubia.systemui.NubiaSystemUIApplication.Companion.TAG
 import cn.nubia.systemui.NubiaThreadHelper
@@ -100,18 +96,6 @@ fun File.monitor(callback:(String?)->Unit){
                 }
             }.start()
         }
-    }
-}
-
-fun FingerprintManager.writeNode(fileName:String, value:Int){
-    File(fileName).writeLine("${value}")
-}
-
-fun FingerprintManager.processCmd(cmd:Int, arr1:Int, arr2:Int, sendBuff:ByteArray, len:Int): ByteArray?{
-    if(cmd in BiometricCmd){
-        return null
-    }else{
-        throw IllegalAccessError("processCmd cmd=${cmd}")
     }
 }
 

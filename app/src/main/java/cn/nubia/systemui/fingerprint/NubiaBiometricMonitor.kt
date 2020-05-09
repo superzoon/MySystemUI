@@ -5,13 +5,13 @@ import android.os.Handler
 import android.os.Looper
 import android.util.Log
 import cn.nubia.systemui.NubiaSystemUIApplication
-import cn.nubia.systemui.common.Dump
+import cn.nubia.systemui.common.DumpHelper
 import java.io.FileDescriptor
 import java.io.PrintWriter
 import java.lang.ref.Reference
 import java.lang.ref.WeakReference
 
-class NubiaBiometricMonitor :Dump{
+class NubiaBiometricMonitor : DumpHelper.Dump {
 
     private val mHandler = Handler(Looper.getMainLooper());
     interface UpdateMonitorCallback{

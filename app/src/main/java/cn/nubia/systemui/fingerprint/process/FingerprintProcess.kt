@@ -3,6 +3,7 @@ package cn.nubia.systemui.fingerprint.process
 import android.content.Context
 import android.hardware.fingerprint.FingerprintManager
 import android.os.SystemClock
+import android.os.processCmd
 import android.util.Log
 import cn.nubia.systemui.NubiaSystemUIApplication
 import cn.nubia.systemui.fingerprint.FingerprintController

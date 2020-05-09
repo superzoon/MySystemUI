@@ -8,14 +8,14 @@ import java.io.PrintWriter
 import java.lang.ref.Reference
 import java.lang.ref.WeakReference
 
-interface Dump {
+class DumpHelper {
     companion object {
         private val TAG = "${NubiaSystemUIApplication.TAG}.Dump"
         private val mList = mutableListOf<Reference<Dump>>()
         private val mHandler = NubiaThreadHelper.get().getMainHander()
 
         private fun registerDump(dump:Dump?){
-            dump.apply {
+            dump?.apply {
                 mHandler.post{
                     if(mList.find { it.get()== dump } == null){
                         mList.add(WeakReference(dump))
@@ -36,12 +36,14 @@ interface Dump {
             mList.forEach { it.get()?.dump(fd, writer, args) }
         }
     }
-    fun registerDump(){
-        Dump.registerDump(this)
-    }
+    interface Dump{
+        fun dump(fd: FileDescriptor?, writer: PrintWriter?, args: Array<out String>?){}
+        fun registerDump(){
+            DumpHelper.registerDump(this)
+        }
 
-    fun unregisterDump(){
-        Dump.unregisterDump(this)
+        fun unregisterDump(){
+            DumpHelper.unregisterDump(this)
+        }
     }
-    fun dump(fd: FileDescriptor?, writer: PrintWriter?, args: Array<out String>?)
 }

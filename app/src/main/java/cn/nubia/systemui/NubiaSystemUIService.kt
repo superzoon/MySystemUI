@@ -55,7 +55,7 @@ class NubiaSystemUIService:Service(){
 
     override fun dump(fd: FileDescriptor?, writer: PrintWriter?, args: Array<out String>?) {
         super.dump(fd, writer, args)
-        Dump.dipatchDump(fd, writer, args)
+        DumpHelper.dipatchDump(fd, writer, args)
     }
 
     override fun onDestroy() {

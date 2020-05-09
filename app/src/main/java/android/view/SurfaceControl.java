@@ -7,15 +7,7 @@ import android.support.annotation.IntDef;
 import java.lang.annotation.*;
 
 public class SurfaceControl {
-    @Documented
-    @IntDef({SEX.UNKNOWN, SEX.MALE, SEX.FEMALE})
-    @Target({ElementType.PARAMETER, ElementType.FIELD, ElementType.METHOD})
-    @Retention(RetentionPolicy.SOURCE)
-    public @interface SEX {
-        int UNKNOWN = 0; // 未知（保密）
-        int MALE = 1;    // 男
-        int FEMALE = 2;  // 女
-    }
+
     public static final int HIDDEN = 2<<2;
     public static void openTransaction(){}
     public static void closeTransaction(){}

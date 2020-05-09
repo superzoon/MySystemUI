@@ -12,7 +12,7 @@ import cn.nubia.systemui.fingerprint.FingerprintWindowController
 import java.io.FileDescriptor
 import java.io.PrintWriter
 
-abstract class Controller(val mContext:Context):Dump {
+abstract class Controller(val mContext:Context): DumpHelper.Dump {
     abstract fun getHandler():Handler
     abstract fun onStart(service:NubiaSystemUIService)
     abstract fun onStop(service:NubiaSystemUIService)

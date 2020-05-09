@@ -25,7 +25,7 @@ import java.lang.NumberFormatException
 import java.lang.ref.Reference
 import java.lang.ref.WeakReference
 
-class UpdateMonitor private constructor():Dump{
+class UpdateMonitor private constructor(): DumpHelper.Dump {
     override fun dump(fd: FileDescriptor?, writer: PrintWriter?, args: Array<out String>?) {
         //打印最近40个info
         writer?.apply {

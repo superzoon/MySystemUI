@@ -10,7 +10,10 @@ import android.graphics.drawable.VectorDrawable
 import android.os.Bundle
 import android.os.IBinder
 import android.util.Log
+import android.view.KeyEvent
+import android.view.MotionEvent
 import cn.nubia.systemui.aidl.INubiaSystemUI
+import cn.nubia.systemui.input.InputProxy
 import kotlinx.android.synthetic.main.activity_settings.*
 
 class SettingsActivity : Activity(),ServiceConnection {
@@ -30,6 +33,21 @@ class SettingsActivity : Activity(),ServiceConnection {
         (getDrawable(R.drawable.ic_launcher_background) as VectorDrawable).apply {
 
         }
+    }
+
+    override fun onStart() {
+        super.onStart()
+        InputProxy.get(this).registerEventListener(object :InputProxy.EventListener{
+            override fun onTouchEvent(owner: MotionEvent) {
+                Log.i(TAG, "on onServiceDisconnected ${owner}")
+
+            }
+
+            override fun onKeyEvent(owner: KeyEvent) {
+                Log.i(TAG, "on onServiceDisconnected ${owner}")
+            }
+
+        })
     }
 
     override fun onServiceDisconnected(name: ComponentName?) {

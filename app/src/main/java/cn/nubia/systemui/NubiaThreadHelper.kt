@@ -7,15 +7,16 @@ import android.os.Process
 import android.util.Log
 import android.util.PrintWriterPrinter
 import cn.nubia.systemui.NubiaSystemUIApplication.Companion.TAG
-import cn.nubia.systemui.common.Dump
+import cn.nubia.systemui.common.DumpHelper
 import java.io.*
 import java.util.*
 import java.util.concurrent.LinkedBlockingQueue
 
 @Suppress("UNCHECKED_CAST")
-class NubiaThreadHelper private constructor():Dump{
+class NubiaThreadHelper private constructor(): DumpHelper.Dump {
 
     private val mMainHandler:Handler = Handler(Looper.getMainLooper())
+    private val DEBUG = false
     val mQueueList = LinkedList<Queue<Any>>()
     private val mFingerprintHandler:Handler by lazy {
         HandlerThread("FpThread").let {
@@ -51,15 +52,19 @@ class NubiaThreadHelper private constructor():Dump{
     }
 
     init {
-        registerDump()
-        mMainHandler.looper.setMessageLogging{
-            Log.i(TAG, it)
+        handlerBackground{
+            registerDump()
         }
-        mFingerprintHandler.looper.setMessageLogging{
-            Log.i(TAG, it)
-        }
-        mSurfaceHandler.looper.setMessageLogging{
-            Log.i(TAG, it)
+        if(DEBUG){
+            mMainHandler.looper.setMessageLogging{
+                Log.i(TAG, it)
+            }
+            mFingerprintHandler.looper.setMessageLogging{
+                Log.i(TAG, it)
+            }
+            mSurfaceHandler.looper.setMessageLogging{
+                Log.i(TAG, it)
+            }
         }
     }
 
