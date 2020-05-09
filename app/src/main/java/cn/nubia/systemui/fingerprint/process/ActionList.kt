@@ -1,6 +1,7 @@
 package cn.nubia.systemui.fingerprint.process
 
 import android.support.annotation.IntDef
+import android.support.annotation.LongDef
 import android.view.Choreographer
 import android.view.Display
 import cn.nubia.systemui.NubiaThreadHelper
@@ -24,12 +25,12 @@ class ActionList(val controller: Controller) {
         }
     }
 
-    @IntDef(value = longArrayOf(ActionKey.KEY_SCREEN_OFF.toLong(),
-            ActionKey.KEY_SCREEN_ON.toLong(),
-            ActionKey.KEY_SCREEN_DOZE.toLong(),
-            ActionKey.KEY_SCREEN_HBM.toLong(),
-            ActionKey.KEY_SCREEN_FRAME.toLong(),
-            ActionKey.KEY_SCREEN_2FRAME.toLong()))
+    @IntDef(value = intArrayOf(ActionKey.KEY_SCREEN_OFF,
+            ActionKey.KEY_SCREEN_ON,
+            ActionKey.KEY_SCREEN_DOZE,
+            ActionKey.KEY_SCREEN_HBM,
+            ActionKey.KEY_SCREEN_FRAME,
+            ActionKey.KEY_SCREEN_2FRAME))
     @Retention(AnnotationRetention.SOURCE)
     annotation class KeyInt
 

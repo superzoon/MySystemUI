@@ -49,13 +49,13 @@ class FingerprintController(mContext:Context):Controller(mContext), DumpHelper.D
 
         override fun onFingerDown() {
             mHandler.post {
-                this@FingerprintController.onFingerprintDown()
+                this@FingerprintController.onFingerDown()
             }
         }
 
         override fun onFingerUp() {
             mHandler.post {
-                this@FingerprintController.onFingerprintUp()
+                this@FingerprintController.onFingerUp()
             }
         }
 
@@ -164,7 +164,7 @@ class FingerprintController(mContext:Context):Controller(mContext), DumpHelper.D
         NubiaBiometricMonitor.get().removeCallback(mMonitor)
     }
 
-    fun onFingerprintDown() {
+    fun onFingerDown() {
         checkThread()
         if(!isFingerDown){
             isFingerDown = true
@@ -182,15 +182,15 @@ class FingerprintController(mContext:Context):Controller(mContext), DumpHelper.D
                     mCurrentProcess = null
                 }
             }
-            mCurrentProcess?.onTouchDown()
+            mCurrentProcess?.callFingerDown()
         }
     }
 
-    fun onFingerprintUp() {
+    fun onFingerUp() {
         checkThread()
         if(isFingerDown){
             isFingerDown = false
-            mCurrentProcess?.onTouchUp()
+            mCurrentProcess?.callFingerUp()
             mOldProcess = mCurrentProcess
             mCurrentProcess = null
         }

@@ -39,7 +39,7 @@ abstract class  FingerprintProcess(val mContext:Context, val mFingerprintControl
             }
         }
 
-    fun onTouchDown() {
+    fun callFingerDown() {
         when (mState) {
             ProcessState.UPING -> {
                 //待处理项
@@ -71,6 +71,7 @@ abstract class  FingerprintProcess(val mContext:Context, val mFingerprintControl
                 Log.w(TAG, "onTouchDown, but current state = ${mState}")
             }
         }
+        onFingerDown()
     }
 
     fun callUiReady(){
@@ -94,9 +95,10 @@ abstract class  FingerprintProcess(val mContext:Context, val mFingerprintControl
                 Log.w(TAG, "onUiReady, but current state = ${mState}")
             }
         }
+        onUiReady()
     }
 
-    fun onTouchUp(){
+    fun callFingerUp(){
         when(mState){
             ProcessState.UI_READYING  ->{
                 //待处理项
@@ -123,6 +125,7 @@ abstract class  FingerprintProcess(val mContext:Context, val mFingerprintControl
                 Log.w(TAG, "onTouchUp, but current state = ${mState}")
             }
         }
+        onFingerUp();
     }
 
     open fun onAcquired(info: Int) {
@@ -135,6 +138,9 @@ abstract class  FingerprintProcess(val mContext:Context, val mFingerprintControl
         }
     }
 
+    open fun onFingerDown(){}
+    open fun onUiReady(){}
+    open fun onFingerUp(){}
     open fun onIconShow() {}
     open fun onIconHide() {}
     open fun onStartAuth(owner: String?) {
@@ -144,5 +150,7 @@ abstract class  FingerprintProcess(val mContext:Context, val mFingerprintControl
     open fun onAuthError() { }
     open fun onFailAuth() { }
     open fun onStopAuth() { }
-    abstract fun dump(fd: FileDescriptor?, writer: PrintWriter?, args: Array<out String>?)
+    open fun dump(fd: FileDescriptor?, writer: PrintWriter?, args: Array<out String>?){
+
+    }
 }

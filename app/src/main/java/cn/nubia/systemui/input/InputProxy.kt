@@ -40,6 +40,7 @@ class InputProxy private constructor(val mContext:Context) {
         receiver = getInputChannel(getInputMonitor(""))?.let {
             object : InputEventReceiver(it as InputChannel, mHandler.looper){
                 override fun onInputEvent(event: InputEvent?) {
+                    Log.i(TAG, "on onInputEvent ${event}")
                     var handled = false
                     try {
                         if (event is MotionEvent && event.getSource() and InputDevice.SOURCE_CLASS_POINTER != 0) {
@@ -81,7 +82,7 @@ class InputProxy private constructor(val mContext:Context) {
                     mList.add(WeakReference(this))
                 }
                 unregisterEventListener(null)
-                Log.i(TAG, "addCallback size=${mList.size}")
+                Log.i(TAG, "addEventListener size=${mList.size}")
             }
         }
     }

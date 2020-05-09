@@ -1,8 +1,9 @@
 import android.support.annotation.IntDef
+import android.support.annotation.LongDef
 import cn.nubia.systemui.common.BiometricShowFlagesConstant
 import cn.nubia.systemui.fingerprint.process.ActionList
 
-@IntDef(value = longArrayOf(ActionList.ActionKey.KEY_SCREEN_OFF.toLong(),
+@LongDef(value = longArrayOf(ActionList.ActionKey.KEY_SCREEN_OFF.toLong(),
         ActionList.ActionKey.KEY_SCREEN_ON.toLong(),
         ActionList.ActionKey.KEY_SCREEN_DOZE.toLong(),
         ActionList.ActionKey.KEY_SCREEN_HBM.toLong()))

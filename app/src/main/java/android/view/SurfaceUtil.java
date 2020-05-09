@@ -6,6 +6,22 @@ import java.lang.reflect.Method;
 import java.lang.reflect.Proxy;
 
 public class SurfaceUtil {
+
+    public static Surface createSurface(){
+        try {
+            return Surface.class.getConstructor().newInstance();
+        } catch (IllegalAccessException e) {
+            e.printStackTrace();
+        } catch (InstantiationException e) {
+            e.printStackTrace();
+        } catch (InvocationTargetException e) {
+            e.printStackTrace();
+        } catch (NoSuchMethodException e) {
+            e.printStackTrace();
+        }
+        return null;
+    }
+
     public static void copyFrom(Surface surface, SurfaceControl control){
         try {
             Surface.class.getDeclaredMethod("copyFrom", SurfaceControl.class).invoke(surface, control);
@@ -15,13 +31,6 @@ public class SurfaceUtil {
             e.printStackTrace();
         } catch (NoSuchMethodException e) {
             e.printStackTrace();
-
-            Proxy.newProxyInstance(surface.getClass().getClassLoader(), new Class[]{}, new InvocationHandler() {
-                @Override
-                public Object invoke(Object proxy, Method method, Object[] args) throws Throwable {
-                    return null;
-                }
-            });
         }
     }
     public static void createFrom(Surface surface, SurfaceControl control){

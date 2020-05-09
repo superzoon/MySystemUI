@@ -9,6 +9,8 @@ import java.io.PrintWriter
 
 class ScreenOffProcess(mContext: Context, mController: FingerprintController,mWindowController: FingerprintWindowController):
         FingerprintProcess(mContext, mController, mWindowController) {
+
     override fun dump(fd: FileDescriptor?, writer: PrintWriter?, args: Array<out String>?) {
+        super.dump(fd, writer, args)
     }
 }

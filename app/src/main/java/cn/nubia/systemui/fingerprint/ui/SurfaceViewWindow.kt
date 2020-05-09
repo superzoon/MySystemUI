@@ -16,7 +16,7 @@ class SurfaceViewWindow(val mContext:Context){
     var mSurfaceControl:SurfaceControl?=null
     val mTransaction = SurfaceControl.Transaction()
     val mSurfaceView = SurfaceView(mContext)
-    var mSurface= mSurfaceView.holder.surface
+    val mSurface= SurfaceUtil.createSurface()!!
     val icon_size = 600
     val icon_x = (1280-icon_size)/2f
     fun addView(){
