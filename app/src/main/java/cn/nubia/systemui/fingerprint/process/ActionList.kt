@@ -1,10 +1,9 @@
 package cn.nubia.systemui.fingerprint.process
 
-import android.support.annotation.IntDef
-import android.support.annotation.LongDef
 import android.view.Choreographer
 import android.view.Display
 import cn.nubia.systemui.NubiaThreadHelper
+import cn.nubia.systemui.annotation.IntDef
 import cn.nubia.systemui.common.Controller
 import java.lang.AssertionError
 

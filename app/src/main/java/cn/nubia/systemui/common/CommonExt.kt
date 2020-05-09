@@ -9,7 +9,6 @@ import java.io.BufferedReader
 import java.io.File
 import java.io.FileReader
 import java.io.FileWriter
-
 private val mMonitorFileMap  = mutableMapOf<String, MutableList<(String?)->Unit>>()
 private val mMonitorValueMap  = mutableMapOf<String, String>()
 

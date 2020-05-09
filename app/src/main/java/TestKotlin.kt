@@ -1,5 +1,5 @@
-import android.support.annotation.IntDef
-import android.support.annotation.LongDef
+
+import cn.nubia.systemui.annotation.LongDef
 import cn.nubia.systemui.common.BiometricShowFlagesConstant
 import cn.nubia.systemui.fingerprint.process.ActionList
 
@@ -14,7 +14,7 @@ annotation class KeyInt{
 }
 
 
-fun test(@KeyInt aa:Int){
+fun test(@LongDef aa:Int){
     when (aa){
         in ActionList.ActionKey ->{
             print(aa)
