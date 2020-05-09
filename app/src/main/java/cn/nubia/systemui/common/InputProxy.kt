@@ -1,4 +1,4 @@
-package cn.nubia.systemui.input
+package cn.nubia.systemui.common
 
 import android.content.Context
 import android.hardware.input.InputManager
@@ -19,12 +19,12 @@ class InputProxy private constructor(val mContext:Context) {
 
     companion object {
         val TAG = "${NubiaSystemUIApplication.TAG}.Input"
-        private var proxy:InputProxy?=null
-        fun get(mContext:Context) = if(proxy!=null){
+        private var proxy: InputProxy?=null
+        fun get(mContext:Context) = if(proxy !=null){
             proxy!!
         }else{
             synchronized(this){
-                if(proxy==null){
+                if(proxy ==null){
                     proxy = InputProxy(mContext)
                 }
             }
