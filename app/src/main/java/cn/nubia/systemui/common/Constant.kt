@@ -148,6 +148,7 @@ class BiometricConstant{
         val TYPE_HELP = 4
         val TYPE_ERROR = 5
         val TYPE_ATTR_FLAGES = 6
+        val TYPE_INFO = 7
     }
 }
 class FingerprintInfo{

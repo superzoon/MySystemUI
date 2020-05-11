@@ -1,3 +1,33 @@
 <resources>
     <string name="app_name">NubiaSystemUI</string>
+
+
+    <string name="finger_shortcut_tips_slide_go_out">松手退出</string>
+    <string name="finger_shortcut_tips_slide_cancel">上滑取消</string>
+    <string name="finger_quickly_wxccf">微信乘车码</string>
+    <string name="finger_quickly_wxfkm">微信付款码</string>
+    <string name="finger_quickly_wxsys">微信扫一扫</string>
+    <string name="finger_quickly_zfbewm">支付宝二维码</string>
+    <string name="finger_quickly_zfbsys">支付宝扫一扫</string>
+    <integer-array name="quickly_name_ids">
+        <item>@string/finger_quickly_wxccf</item>
+        <item>@string/finger_quickly_wxfkm</item>
+        <item>@string/finger_quickly_wxsys</item>
+        <item>@string/finger_quickly_zfbewm</item>
+        <item>@string/finger_quickly_zfbsys</item>
+    </integer-array>
+    <integer-array name="quickly_small_icon_ids">
+        <item>@drawable/finger_quickly_wxccm_small</item>
+        <item>@drawable/finger_quickly_wxfkm_small</item>
+        <item>@drawable/finger_quickly_wxsys_small</item>
+        <item>@drawable/finger_quickly_zfbewm_small</item>
+        <item>@drawable/finger_quickly_zfbsys_small</item>
+    </integer-array>
+    <integer-array name="quickly_icon_ids">
+        <item>@drawable/finger_quickly_wxccm</item>
+        <item>@drawable/finger_quickly_wxfkm</item>
+        <item>@drawable/finger_quickly_wxsys</item>
+        <item>@drawable/finger_quickly_zfbewm</item>
+        <item>@drawable/finger_quickly_zfbsys</item>
+    </integer-array>
 </resources>

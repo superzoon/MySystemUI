@@ -41,12 +41,61 @@ abstract class  FingerprintProcess(val mContext:Context, val mFingerprintControl
 
     fun callFingerDown() {
         when (mState) {
-            ProcessState.UPING -> {
+            ProcessState.NORMAL,ProcessState.UPING -> {
                 //待处理项
-                mState = ProcessState.UP
-            }
-            ProcessState.NORMAL, ProcessState.UP -> {
                 mState = ProcessState.DOWNING
+            }
+            else -> {
+                Log.w(TAG, "onTouchDown, but current state = ${mState}")
+            }
+        }
+        onFingerDown()
+    }
+
+    fun callUiReady(){
+        when(mState){
+            ProcessState.DOWN  ->{
+                //待处理项
+                mState = ProcessState.UI_READYING
+            }
+            else -> {
+                Log.w(TAG, "onUiReady, but current state = ${mState}")
+            }
+        }
+        onUiReady()
+    }
+
+    fun callFingerUp(){
+        when(mState){
+            ProcessState.DOWN  ->{
+                //待处理项
+                mState = ProcessState.UPING
+            }
+            ProcessState.UI_READY  ->{
+                //待处理项
+                mState = ProcessState.UPING
+            }
+            else -> {
+                Log.w(TAG, "onTouchUp, but current state = ${mState}")
+            }
+        }
+        onFingerUp();
+    }
+
+    open fun onAcquired(info: Int) {
+        when(info){
+            in FingerprintInfo -> {
+                if (FingerprintInfo.isVibrateError(info)){
+
+                }
+            }
+        }
+    }
+
+    open fun onFingerDown(){
+
+        when (mState) {
+            ProcessState.DOWNING -> {
 
                 mThreadHelper.synInvoke(mWindowController.mHandler) {
                     mWindowController.showFingerDownImage()
@@ -61,8 +110,8 @@ abstract class  FingerprintProcess(val mContext:Context, val mFingerprintControl
                     setHBM(true)
                     mThreadHelper.synFingerprint {
                         if (mState == ProcessState.DOWNING) {
-                            mFingerprintController.onHbmEnable(true)
                             mState = ProcessState.DOWN
+                            mFingerprintController.onHbmEnable(true)
                         }
                     }
                 }
@@ -71,17 +120,10 @@ abstract class  FingerprintProcess(val mContext:Context, val mFingerprintControl
                 Log.w(TAG, "onTouchDown, but current state = ${mState}")
             }
         }
-        onFingerDown()
     }
-
-    fun callUiReady(){
+    open fun onUiReady(){
         when(mState){
-            ProcessState.DOWNING  ->{
-                //待处理项
-                mState = ProcessState.UI_READY
-            }
-            ProcessState.DOWN -> {
-                mState = ProcessState.UI_READYING
+            ProcessState.UI_READYING -> {
                 mThreadHelper.getBgHander().post {
                     mFingerprintManager.processCmd(BiometricCmd.CMD_UI_READY, 0, 0 , byteArrayOf(), 0)
                     mThreadHelper.synFingerprint{
@@ -95,17 +137,10 @@ abstract class  FingerprintProcess(val mContext:Context, val mFingerprintControl
                 Log.w(TAG, "onUiReady, but current state = ${mState}")
             }
         }
-        onUiReady()
     }
-
-    fun callFingerUp(){
+    open fun onFingerUp(){
         when(mState){
-            ProcessState.UI_READYING  ->{
-                //待处理项
-                mState = ProcessState.UPING
-            }
-            ProcessState.UI_READY -> {
-                mState = ProcessState.UPING
+            ProcessState.UPING -> {
 
                 mThreadHelper.synInvoke(mWindowController.mHandler){
                     mWindowController.showFingerUpImage()
@@ -125,31 +160,12 @@ abstract class  FingerprintProcess(val mContext:Context, val mFingerprintControl
                 Log.w(TAG, "onTouchUp, but current state = ${mState}")
             }
         }
-        onFingerUp();
     }
-
-    open fun onAcquired(info: Int) {
-        when(info){
-            in FingerprintInfo -> {
-                if (FingerprintInfo.isVibrateError(info)){
-
-                }
-            }
-        }
-    }
-
-    open fun onFingerDown(){}
-    open fun onUiReady(){}
-    open fun onFingerUp(){}
     open fun onIconShow() {}
     open fun onIconHide() {}
-    open fun onStartAuth(owner: String?) {
-        mWindowController.show()
-    }
     open fun onDoneAuth() { }
     open fun onAuthError() { }
     open fun onFailAuth() { }
-    open fun onStopAuth() { }
     open fun dump(fd: FileDescriptor?, writer: PrintWriter?, args: Array<out String>?){
 
     }

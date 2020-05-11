@@ -61,7 +61,9 @@ fun File.monitor(callback:(String?)->Unit){
     NubiaThreadHelper.get().handlerBackground {
         if(mMonitorFileMap.containsKey(name)){
             mMonitorFileMap[name]?.add(callback)
-            callback.invoke(mMonitorValueMap[name])
+            if(mMonitorValueMap[name]!=null){
+                callback.invoke(mMonitorValueMap[name])
+            }
         }else{
             mMonitorFileMap[name] = mutableListOf<(String?)->Unit>()
             Thread{
@@ -73,9 +75,11 @@ fun File.monitor(callback:(String?)->Unit){
                             r = BufferedReader(FileReader(name))
                             while (size>0){
                                 mMonitorValueMap[name] = r.readLine()
-                                NubiaThreadHelper.get().synBackground {
-                                    forEach {
-                                        it.invoke(mMonitorValueMap[name])
+                                if(!mMonitorValueMap[name].isNullOrEmpty()){
+                                    NubiaThreadHelper.get().synBackground {
+                                        forEach {
+                                            it.invoke(mMonitorValueMap[name])
+                                        }
                                     }
                                 }
                             }
@@ -90,6 +94,7 @@ fun File.monitor(callback:(String?)->Unit){
                             forEach {
                                 it.invoke(null)
                             }
+                            Log.i(NubiaSystemUIApplication.TAG, "read end:${path}")
                         }
                     }
                 }
@@ -120,6 +125,10 @@ fun View.setVisible(visible:Boolean){
     this.visibility = if (visible) View.VISIBLE else View.GONE
 }
 /**
+<< shl
+>> shr
+| or
+& and
 表达式	 对应的函数
 a+b	     a.plus(b)
 a-b	     a.minus(b)

@@ -1,5 +1,4 @@
-
-<cn.nubia.systemui.fingerprint.view.IconView
+<cn.nubia.systemui.fingerprint.view.FingerView
         xmlns:android="http://schemas.android.com/apk/res/android"
         xmlns:app="http://schemas.android.com/apk/res/cn.nubia.systemui"
         android:layout_width="match_parent"
@@ -9,10 +8,7 @@
 
     <ImageView
             android:id="@+id/fingerprint_icon_view"
-            android:background="#ccc"
-            android:layout_width="300dp"
-            android:layout_height="300dp"
-            android:paddingLeft="20dp"
-            android:paddingBottom="40dp"/>
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"/>
 
-</cn.nubia.systemui.fingerprint.view.IconView>
+</cn.nubia.systemui.fingerprint.view.FingerView>

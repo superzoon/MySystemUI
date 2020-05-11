@@ -12,12 +12,17 @@ import android.view.MotionEvent
 import android.view.View
 import android.widget.FrameLayout
 import android.widget.ImageView
+import cn.nubia.systemui.NubiaSystemUIApplication
 import cn.nubia.systemui.R
+import cn.nubia.systemui.common.setVisible
 
 /**
  * TODO: document your custom view class.
  */
-class IconView : FrameLayout, View.OnTouchListener {
+class FingerView : FrameLayout, View.OnTouchListener {
+    companion object {
+        val TAG = "${NubiaSystemUIApplication.TAG}.FingerView"
+    }
     /**
      * In the example view, this drawable is drawn above the text.
      */
@@ -27,6 +32,7 @@ class IconView : FrameLayout, View.OnTouchListener {
     private val mFingerprintView:ImageView by lazy {
         (findViewById(R.id.fingerprint_icon_view) as ImageView).apply {
             setImageDrawable(mNormalDrawable)
+            setOnTouchListener(this@FingerView)
         }
     }
 
@@ -34,6 +40,7 @@ class IconView : FrameLayout, View.OnTouchListener {
         fun onFingerDown()
         fun onFingerUp()
     }
+
     constructor(context: Context) : super(context) {
         init(null, 0)
     }
@@ -49,16 +56,16 @@ class IconView : FrameLayout, View.OnTouchListener {
     private fun init(attrs: AttributeSet?, defStyle: Int) {
         // Load attributes
         val a = context.obtainStyledAttributes(
-                attrs, R.styleable.IconView, defStyle, 0)
+                attrs, R.styleable.FingerView, defStyle, 0)
 
-        if (a.hasValue(R.styleable.IconView_normalDrawable)) {
-            mNormalDrawable = a.getDrawable(R.styleable.IconView_normalDrawable)
+        if (a.hasValue(R.styleable.FingerView_normalDrawable)) {
+            mNormalDrawable = a.getDrawable(R.styleable.FingerView_normalDrawable)
         } else {
             mNormalDrawable = resources.getDrawable(R.drawable.fingerprint_icon_normal, context.theme)
         }
 
-        if (a.hasValue(R.styleable.IconView_pressDrawable)) {
-            mPressDrawable = a.getDrawable(R.styleable.IconView_pressDrawable)
+        if (a.hasValue(R.styleable.FingerView_pressDrawable)) {
+            mPressDrawable = a.getDrawable(R.styleable.FingerView_pressDrawable)
         } else {
             mNormalDrawable = resources.getDrawable(R.drawable.fingerprint_icon_press, context.theme)
         }
@@ -66,9 +73,9 @@ class IconView : FrameLayout, View.OnTouchListener {
 
     }
 
-    override fun onFinishInflate() {
-        super.onFinishInflate()
-        mFingerprintView.setOnTouchListener(this)
+    override fun onAttachedToWindow() {
+        super.onAttachedToWindow()
+        showFingerUpImage()
     }
 
     fun showFingerDownImage(){
@@ -79,25 +86,34 @@ class IconView : FrameLayout, View.OnTouchListener {
         mFingerprintView.setImageDrawable(mNormalDrawable)
     }
 
-    fun setCallback(callback:Callback){
+    fun setCallback(callback:Callback?){
         mCallback = callback
     }
 
     private fun fingerprintTouch(event: MotionEvent?):Boolean{
         when(event?.action){
             MotionEvent.ACTION_DOWN -> {
+                Log.i(TAG, "onFingerDown 1")
                 mCallback?.onFingerDown()
             }
             MotionEvent.ACTION_UP->{
+                Log.i(TAG, "onFingerUp 1")
                 mCallback?.onFingerUp()
             }
         }
         return true
     }
 
-    override fun onTouch(v: View?, event: MotionEvent?): Boolean = when(v){
-        mFingerprintView -> fingerprintTouch(event)
-        else -> { false }
+    override fun onTouch(v: View, event: MotionEvent): Boolean {
+        when(event.action){
+            MotionEvent.ACTION_DOWN, MotionEvent.ACTION_UP ->{
+                Log.i(TAG, "dispatchTouchEvent ${event}")
+            }
+        }
+        return when(v){
+            mFingerprintView -> fingerprintTouch(event)
+            else -> { false }
+        }
     }
 
     override fun onDraw(canvas: Canvas) {

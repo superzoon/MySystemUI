@@ -3,7 +3,7 @@ package cn.nubia.systemui.fingerprint.process
 import android.view.Choreographer
 import android.view.Display
 import cn.nubia.systemui.NubiaThreadHelper
-import cn.nubia.systemui.annotation.IntDef
+import cn.nubia.systemui.fingerprint.annotation.ActionKeyInt
 import cn.nubia.systemui.common.Controller
 import java.lang.AssertionError
 
@@ -23,16 +23,6 @@ class ActionList(val controller: Controller) {
             return "${name} -> ${action}"
         }
     }
-
-    @IntDef(value = intArrayOf(ActionKey.KEY_SCREEN_OFF,
-            ActionKey.KEY_SCREEN_ON,
-            ActionKey.KEY_SCREEN_DOZE,
-            ActionKey.KEY_SCREEN_HBM,
-            ActionKey.KEY_SCREEN_FRAME,
-            ActionKey.KEY_SCREEN_2FRAME))
-    @Retention(AnnotationRetention.SOURCE)
-    annotation class KeyInt
-
 
     class ActionKey {
         companion object {
@@ -76,7 +66,7 @@ class ActionList(val controller: Controller) {
             ActionKey.KEY_SCREEN_2FRAME to SCREEN_2FRAME_ACTIONS
     )
 
-    operator fun get(@KeyInt key: Int): MutableList<Action> {
+    operator fun get(@ActionKeyInt key: Int): MutableList<Action> {
         return when (key) {
             in ActionKey -> mProcessAction[key]!!
             else -> throw AssertionError("no key=${key} in list")
@@ -142,7 +132,7 @@ class ActionList(val controller: Controller) {
         addAction(ActionKey.KEY_SCREEN_2FRAME, flowAction)
     }
 
-    fun addAction(@KeyInt key: Int, flowAction: Action) {
+    fun addAction(@ActionKeyInt key: Int, flowAction: Action) {
         controller.checkThread()
         if (flowAction !in this[key]) {
             this[key].add(flowAction)
@@ -179,19 +169,19 @@ class ActionList(val controller: Controller) {
         removeAction(ActionKey.KEY_SCREEN_2FRAME, flowAction)
     }
 
-    fun removeAction(@KeyInt key: Int, flowAction: Action) {
+    fun removeAction(@ActionKeyInt key: Int, flowAction: Action) {
         controller.checkThread()
         if (flowAction in this[key]) {
             this[key].remove(flowAction)
         }
     }
 
-    fun clearAction(@KeyInt key: Int) {
+    fun clearAction(@ActionKeyInt key: Int) {
         controller.checkThread()
         this[key].clear()
     }
 
-    fun invoke(@KeyInt key: Int) {
+    fun invoke(@ActionKeyInt key: Int) {
         if (key in ActionKey) {
             this[key].removeAll {
                 it.invoke()

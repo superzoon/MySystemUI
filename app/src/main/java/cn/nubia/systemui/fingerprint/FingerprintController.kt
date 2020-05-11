@@ -36,27 +36,21 @@ class FingerprintController(mContext:Context):Controller(mContext), DumpHelper.D
     private val mMonitor = object : NubiaBiometricMonitor.UpdateMonitorCallback,
             UpdateMonitor.UpdateMonitorCallback, FingerprintWindowController.Callback {
         override fun onShow() {
-            mHandler.post {
-                this@FingerprintController.onIconShow()
-            }
+            handlerInvoke (this@FingerprintController::onIconShow)
         }
 
         override fun onHide() {
-            mHandler.post {
-                this@FingerprintController.onIconHide()
-            }
+            handlerInvoke (this@FingerprintController::onIconHide)
         }
 
         override fun onFingerDown() {
-            mHandler.post {
-                this@FingerprintController.onFingerDown()
-            }
+            Log.i(TAG, "onFingerDown 3")
+            handlerInvoke (this@FingerprintController::onFingerDown)
         }
 
         override fun onFingerUp() {
-            mHandler.post {
-                this@FingerprintController.onFingerUp()
-            }
+            Log.i(TAG, "onFingerUp 3")
+            handlerInvoke (this@FingerprintController::onFingerUp)
         }
 
         val DEBUG = false
@@ -66,37 +60,29 @@ class FingerprintController(mContext:Context):Controller(mContext), DumpHelper.D
         }
 
         override fun onStartAuth(owner: String?) {
-            mHandler.post {
+            handlerInvoke {
                 this@FingerprintController.onStartAuth(owner)
             }
         }
 
         override fun onDoneAuth() {
-            mHandler.post {
-                this@FingerprintController.onDoneAuth()
-            }
+            handlerInvoke (this@FingerprintController::onDoneAuth)
         }
 
         override fun onStopAuth() {
-            mHandler.post {
-                this@FingerprintController.onStopAuth()
-            }
+            handlerInvoke (this@FingerprintController::onStopAuth)
         }
 
         override fun onFailAuth() {
-            mHandler.post {
-                this@FingerprintController.onFailAuth()
-            }
+            handlerInvoke (this@FingerprintController::onFailAuth)
         }
 
         override fun onAuthError() {
-            mHandler.post {
-                this@FingerprintController.onAuthError()
-            }
+            handlerInvoke (this@FingerprintController::onAuthError)
         }
 
         override fun onAcquired(info: Int) {
-            mHandler.post {
+            handlerInvoke {
                 this@FingerprintController.onAcquired(info)
             }
         }
@@ -104,15 +90,13 @@ class FingerprintController(mContext:Context):Controller(mContext), DumpHelper.D
 
         override fun onSystemUIDisConnect() {
             super.onSystemUIDisConnect()
-            mHandler.post {
-                this@FingerprintController.onSystemUIDisConnect()
-            }
+            handlerInvoke (this@FingerprintController::onSystemUIDisConnect)
         }
 
         override fun onSystemUIConnect(systemui: SystemUI) {
             super.onSystemUIConnect(systemui)
             log("onSystemUIConnect systemui=${systemui}")
-            mHandler.post {
+            handlerInvoke {
                 this@FingerprintController.onSystemUIConnect(systemui)
             }
         }
@@ -120,7 +104,7 @@ class FingerprintController(mContext:Context):Controller(mContext), DumpHelper.D
         override fun onDisplayChange(displayId: Int, state: Int, stateStr: String) {
             super.onDisplayChange(displayId, state, stateStr)
             log("onDisplayChange displayId=${displayId} ${state} ${stateStr}")
-            mHandler.post {
+            handlerInvoke {
                 this@FingerprintController.onDisplayChange(displayId, state, stateStr)
             }
         }
@@ -157,6 +141,8 @@ class FingerprintController(mContext:Context):Controller(mContext), DumpHelper.D
     override fun onStart(service: NubiaSystemUIService) {
         UpdateMonitor.get().addCallback(mMonitor)
         NubiaBiometricMonitor.get().addCallback(mMonitor)
+        handlerInvoke { mWindowController.mCallback=mMonitor }
+        mDisplayState = UpdateMonitor.get().getDisplayState()
     }
 
     override fun onStop(service: NubiaSystemUIService) {
@@ -166,6 +152,7 @@ class FingerprintController(mContext:Context):Controller(mContext), DumpHelper.D
 
     fun onFingerDown() {
         checkThread()
+        Log.i(TAG, "onFingerDown 4 ${isFingerDown} ${mDisplayState}")
         if(!isFingerDown){
             isFingerDown = true
             when (mDisplayState) {
@@ -184,10 +171,12 @@ class FingerprintController(mContext:Context):Controller(mContext), DumpHelper.D
             }
             mCurrentProcess?.callFingerDown()
         }
+        Log.i(TAG, "onFingerDown ${mCurrentProcess} ${mCurrentProcess?.javaClass?.simpleName}")
     }
 
     fun onFingerUp() {
         checkThread()
+        Log.i(TAG, "onFingerUp 3 ${isFingerDown} ${mCurrentProcess} ${mCurrentProcess?.javaClass?.simpleName}")
         if(isFingerDown){
             isFingerDown = false
             mCurrentProcess?.callFingerUp()
@@ -217,7 +206,7 @@ class FingerprintController(mContext:Context):Controller(mContext), DumpHelper.D
 
     private fun onStartAuth(owner: String?) {
         checkThread()
-        mCurrentProcess?.onStartAuth(owner)
+        mWindowController.show()
     }
 
     private fun onDoneAuth() {
@@ -242,7 +231,7 @@ class FingerprintController(mContext:Context):Controller(mContext), DumpHelper.D
 
     private fun onStopAuth() {
         checkThread()
-        mCurrentProcess?.onStopAuth()
+        mWindowController.hide()
     }
 
     var isHbm = false
@@ -254,7 +243,6 @@ class FingerprintController(mContext:Context):Controller(mContext), DumpHelper.D
         }
         mCurrentProcess?.callUiReady()
     }
-
 }
 
 

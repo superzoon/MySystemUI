@@ -7,12 +7,14 @@ import android.os.Handler
 import android.util.Log
 import cn.nubia.systemui.NubiaSystemUIApplication
 import cn.nubia.systemui.NubiaSystemUIService
+import cn.nubia.systemui.NubiaThreadHelper
 import cn.nubia.systemui.fingerprint.FingerprintController
 import cn.nubia.systemui.fingerprint.FingerprintWindowController
 import java.io.FileDescriptor
 import java.io.PrintWriter
 
 abstract class Controller(val mContext:Context): DumpHelper.Dump {
+    val mThreadHelper = NubiaThreadHelper.get()
     abstract fun getHandler():Handler
     abstract fun onStart(service:NubiaSystemUIService)
     abstract fun onStop(service:NubiaSystemUIService)
@@ -43,6 +45,19 @@ abstract class Controller(val mContext:Context): DumpHelper.Dump {
     }
 
     fun <T:Controller> getController(name:Class<T>) :T = Controller.getController(name)
+
+    protected fun synInvoke(action: ()->Unit){
+        mThreadHelper.synInvoke(getHandler(), action)
+    }
+
+    protected fun <T> synInvoke(action: ()->T):T?{
+        return mThreadHelper.synInvoke(getHandler(), action)
+    }
+
+
+    protected fun handlerInvoke(action: ()->Unit){
+        mThreadHelper.handlerInvoke(getHandler(), action)
+    }
 
     fun checkThread(){
         if("user" != Build.TYPE && !getHandler().looper.isCurrentThread){

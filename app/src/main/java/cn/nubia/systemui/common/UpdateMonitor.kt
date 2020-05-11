@@ -25,7 +25,7 @@ import java.lang.NumberFormatException
 import java.lang.ref.Reference
 import java.lang.ref.WeakReference
 
-class UpdateMonitor private constructor(): DumpHelper.Dump {
+class UpdateMonitor : DumpHelper.Dump {
     override fun dump(fd: FileDescriptor?, writer: PrintWriter?, args: Array<out String>?) {
         //打印最近40个info
         writer?.apply {
@@ -101,7 +101,7 @@ class UpdateMonitor private constructor(): DumpHelper.Dump {
         }
     }
 
-    init {
+    private constructor() {
         val filter = IntentFilter()
         filter.addAction(Intent.ACTION_BATTERY_CHANGED)
         mContext.registerReceiver(mInternalObj, filter)
@@ -117,7 +117,7 @@ class UpdateMonitor private constructor(): DumpHelper.Dump {
                     callFingerUp()
                 }
                 else -> {
-                    Log.w(TAG,"ERR TP ACTION ${it}")
+                    Log.w(TAG,"ERR TP ACTION ${it}, ${mContext.getString(R.string.tp_action_node)}")
                 }
             }
         }
@@ -161,7 +161,7 @@ class UpdateMonitor private constructor(): DumpHelper.Dump {
     }
 
     fun callBiometricChange(action:Int, data:Bundle){
-        val debug = false
+        val debug = true
         val log = fun (any:String){ if(debug) Log.i(TAG, any)}
         when(action){
             BiometricConstant.TYPE_SHOW -> {
@@ -197,10 +197,9 @@ class UpdateMonitor private constructor(): DumpHelper.Dump {
                 SystemBiometricMonitor.get().callBiometricError(error)
             }
             BiometricConstant.TYPE_ATTR_FLAGES->{
-                val flags = data.getInt("flags")
-                callBiometricAttrFlagesChange(flags)
+                callBiometricAttrFlagesChange(data.getInt("flags", 0))
             }
-            else -> {
+            BiometricConstant.TYPE_INFO-> {
                 if(data.containsKey("info")){
                     data.getString("info")?.also {
                         mInfoList[mIndexForInfo++]=InfoStr(it)
@@ -245,7 +244,12 @@ class UpdateMonitor private constructor(): DumpHelper.Dump {
                             }
                         }
                     }
+                }else{
+                    log("err info action=${action} data=${data}")
                 }
+            }
+            else ->{
+                log("other action=${action} data=${data}")
             }
 
         }

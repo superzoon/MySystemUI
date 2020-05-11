@@ -12,9 +12,9 @@ import cn.nubia.systemui.NubiaSystemUIApplication
 import cn.nubia.systemui.NubiaThreadHelper
 import java.util.concurrent.locks.ReentrantLock
 
-class FingerprintView(val mContext: Context){
+class FingerSurface(val mContext: Context){
     companion object {
-        val NAME = "FingerprintView"
+        val NAME = "FingerSurfaceView"
         val TAG = "${NubiaSystemUIApplication.TAG}.${NAME}"
         val OPAQUE = 0X00000400
         val ZORDER = 9999999
