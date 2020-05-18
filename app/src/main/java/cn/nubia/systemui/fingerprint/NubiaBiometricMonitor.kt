@@ -1,6 +1,5 @@
 package cn.nubia.systemui.fingerprint
 
-import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
 import android.util.Log
@@ -21,6 +20,7 @@ class NubiaBiometricMonitor : DumpHelper.Dump {
         fun onFailAuth()
         fun onAuthError()
         fun onAcquired(info:Int)
+        fun onAttrFlagsChange(canShow: Boolean, flags: Int)
     }
 
     companion object {
@@ -105,7 +105,16 @@ class NubiaBiometricMonitor : DumpHelper.Dump {
         }
     }
 
+    fun callAttrFlagsChange(canShow: Boolean, flags: Int) {
+        mHandler.post{
+            mList.forEach{
+                it.get()?.onAttrFlagsChange(canShow, flags)
+            }
+        }
+    }
+
     override fun dump(fd: FileDescriptor?, writer: PrintWriter?, args: Array<out String>?){
 
     }
+
 }

@@ -6,14 +6,20 @@ import android.os.Bundle
 import android.os.Handler
 import android.os.HandlerThread
 import android.util.Log
+import android.view.KeyEvent
+import android.view.MotionEvent
 import android.widget.Toast
+import cn.nubia.systemui.NubiaSystemUIApplication
 import cn.nubia.systemui.fingerprint.view.FingerShortcutView
 import java.util.ArrayList
 import cn.nubia.systemui.R
+import cn.nubia.systemui.common.InputProxy
 
 class FingerShortcutActivity : Activity() {
     var mIndex = 2
-
+    companion object {
+        val TAG = "${NubiaSystemUIApplication.TAG}.Shortcut"
+    }
     val entitys: ArrayList<FingerShortcutView.ShortcutEntity<Intent>>
         get() {
             val entitys = ArrayList<FingerShortcutView.ShortcutEntity<Intent>>()
@@ -35,14 +41,30 @@ class FingerShortcutActivity : Activity() {
             }
             return entitys
         }
+    val EventListener = object :InputProxy.EventListener{
+        override fun onTouchEvent(event: MotionEvent) {
+            Log.e(TAG, "onTouchEvent ${event}")
+        }
+
+        override fun onKeyEvent(event: KeyEvent) {
+            Log.e(TAG, "onKeyEvent ${event}")
+        }
+    }
+
+    override fun onDestroy() {
+        super.onDestroy()
+        Log.e(TAG, "onDestroy")
+
+        InputProxy.get(this).unregisterEventListener(EventListener)
+    }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        Log.e("xlan", "onCreate")
+        Log.e(TAG, "onCreate")
         setContentView(R.layout.finger_shortcut_test_activity)
         val t = HandlerThread("bg")
         t.start()
-
+        InputProxy.get(this).registerEventListener(EventListener)
         val view: FingerShortcutView = findViewById(R.id.qucikly_enter_view)!!
         view.setEntity(mIndex, entitys, Handler(t.looper)).setCallback(object : FingerShortcutView.Callback {
             override fun onSelect(mView: FingerShortcutView, index: Int, entity: FingerShortcutView.ShortcutEntity<*>?) {

@@ -1,11 +1,11 @@
 package cn.nubia.systemui.common
 
-class BiometricShowFlagesConstant{
+class BiometricShowFlagsConstant{
     companion object {
         //无状态
         val STATE_NORMAL = 0
         //启动指纹识别
-        val STATE_AUTHENTICATED = 1 shl 0
+        val STATE_AUTHENTICATE = 1 shl 0
         //非锁屏状态栏下拉
         val STATE_EXPANDED = 1 shl 1
         //锁屏状态栏下拉
@@ -30,57 +30,66 @@ class BiometricShowFlagesConstant{
         val STATE_INPUT_METHOD = 1 shl 11
         //非锁屏类ACTIVITY *UnKeyguardOccluded* 锁屏音乐等白名单不属于
         val STATE_KEYGUARD = 1 shl 12
+        //非锁屏类occluded
         val STATE_UK_OCCLUDED = 1 shl 13
+        //锁屏画报
         val STATE_GALLERY_SHOW = 1 shl 14
-        val STATE_MASK = (1 shl 15) - 1
+        //游戏控制中心
+        val STATE_GAME_CC = 1 shl 15
+        val STATE_MASK = (1 shl 16) - 1
 
         fun isValidState(flags:Int):Boolean = STATE_MASK.xor(flags) > STATE_NORMAL
-        fun hasAuth(flags: Int) = (flags and STATE_AUTHENTICATED) == STATE_AUTHENTICATED
-        fun hasExpanded(flags: Int) = (flags and STATE_EXPANDED) == STATE_AUTHENTICATED
-        fun hasQsExpanded(flags: Int) = (flags and STATE_QS_EXPANDED) == STATE_AUTHENTICATED
-        fun hasIncall(flags: Int) = (flags and STATE_INCALL) == STATE_AUTHENTICATED
-        fun hasSupersnap(flags: Int) = (flags and STATE_SUPERSNAP) == STATE_AUTHENTICATED
-        fun hasAod(flags: Int) = (flags and STATE_AOD_UI) == STATE_AUTHENTICATED
-        fun hasSlideCamera(flags: Int) = (flags and STATE_SLIDE_CAMERA) == STATE_AUTHENTICATED
-        fun hasSlideNavi(flags: Int) = (flags and STATE_SLIDE_NAVI) == STATE_AUTHENTICATED
-        fun hasShutdownView(flags: Int) = (flags and STATE_SHUTDOWN_SHOW) == STATE_AUTHENTICATED
-        fun hasPocketView(flags: Int) = (flags and STATE_POCKET_SHOW) == STATE_AUTHENTICATED
-        fun hasStrongAuth(flags: Int) = (flags and STATE_STRONG_AUTH) == STATE_AUTHENTICATED
-        fun hasInputMethod(flags: Int) = (flags and STATE_INPUT_METHOD) == STATE_AUTHENTICATED
-        fun hasKeyguard(flags: Int) = (flags and STATE_KEYGUARD) == STATE_AUTHENTICATED
-        fun hasUkOccluded(flags: Int) = (flags and STATE_UK_OCCLUDED) == STATE_AUTHENTICATED
-        fun hasGalleryShow(flags: Int) = (flags and STATE_GALLERY_SHOW) == STATE_AUTHENTICATED
+        fun hasAuth(flags: Int) = (flags and STATE_AUTHENTICATE) != STATE_NORMAL
+        fun hasExpanded(flags: Int) = (flags and STATE_EXPANDED) != STATE_NORMAL
+        fun hasQsExpanded(flags: Int) = (flags and STATE_QS_EXPANDED) != STATE_NORMAL
+        fun hasIncall(flags: Int) = (flags and STATE_INCALL) != STATE_NORMAL
+        fun hasSupersnap(flags: Int) = (flags and STATE_SUPERSNAP) != STATE_NORMAL
+        fun hasAod(flags: Int) = (flags and STATE_AOD_UI) != STATE_NORMAL
+        fun hasSlideCamera(flags: Int) = (flags and STATE_SLIDE_CAMERA) != STATE_NORMAL
+        fun hasSlideNavi(flags: Int) = (flags and STATE_SLIDE_NAVI) != STATE_NORMAL
+        fun hasShutdownView(flags: Int) = (flags and STATE_SHUTDOWN_SHOW) != STATE_NORMAL
+        fun hasPocketView(flags: Int) = (flags and STATE_POCKET_SHOW) != STATE_NORMAL
+        fun hasStrongAuth(flags: Int) = (flags and STATE_STRONG_AUTH) != STATE_NORMAL
+        fun hasInputMethod(flags: Int) = (flags and STATE_INPUT_METHOD) != STATE_NORMAL
+        fun hasKeyguard(flags: Int) = (flags and STATE_KEYGUARD) != STATE_NORMAL
+        fun hasUkOccluded(flags: Int) = (flags and STATE_UK_OCCLUDED) != STATE_NORMAL
+        fun hasGalleryShow(flags: Int) = (flags and STATE_GALLERY_SHOW) != STATE_NORMAL
+        fun hasGameQsShow(flags: Int) = (flags and STATE_GAME_CC) != STATE_NORMAL
 
         val TYPE_NORMAL = 1 shl 0
         val TYPE_NORMAL_MASK = STATE_NORMAL
-                .or(STATE_AUTHENTICATED)
+                .or(STATE_AUTHENTICATE)
                 .or(STATE_EXPANDED)
                 .or(STATE_SUPERSNAP)
                 .or(STATE_SLIDE_NAVI)
+                .or(STATE_SHUTDOWN_SHOW)
                 .or(STATE_STRONG_AUTH)
                 .or(STATE_SHUTDOWN_SHOW)
                 .or(STATE_INPUT_METHOD)
+                .or(STATE_GAME_CC)
 
         val TYPE_AOD = 1 shl 1
         val TYPE_AOD_MASK = STATE_NORMAL
-                .or(STATE_AUTHENTICATED)
+                .or(STATE_AUTHENTICATE)
                 .or(STATE_AOD_UI)
                 .or(STATE_SUPERSNAP)
 
         val TYPE_KEYGUARD = 1 shl 2
         val TYPE_KEYGUARD_MASK = STATE_NORMAL
-                .or(STATE_AUTHENTICATED)
+                .or(STATE_AUTHENTICATE)
                 .or(STATE_QS_EXPANDED)
                 .or(STATE_SUPERSNAP)
                 .or(STATE_SLIDE_CAMERA)
                 .or(STATE_SLIDE_NAVI)
                 .or(STATE_SHUTDOWN_SHOW)
+                .or(STATE_POCKET_SHOW)
                 .or(STATE_STRONG_AUTH)
                 .or(STATE_INPUT_METHOD)
+                .or(STATE_KEYGUARD)
                 .or(STATE_UK_OCCLUDED)
                 .or(STATE_GALLERY_SHOW)
 
-        fun canShowFingerprint(state:Int):Boolean = STATE_AUTHENTICATED == when{
+        fun canShowFingerprint(state:Int):Boolean = STATE_AUTHENTICATE == when{
                 !isValidState(state) -> throw IllegalAccessError("type=${state} is error")
                 hasAod(state) ->  state and TYPE_NORMAL_MASK
                 hasKeyguard(state) -> state and TYPE_AOD_MASK
@@ -133,6 +142,9 @@ class BiometricShowFlagesConstant{
                 }
                 if(hasGalleryShow(flags)){
                     build.append("Gallery ")
+                }
+                if(hasGameQsShow(flags)){
+                    build.append("GameCC ")
                 }
                 return build.toString().trim()
             }

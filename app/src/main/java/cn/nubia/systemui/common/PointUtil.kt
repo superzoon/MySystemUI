@@ -1,4 +1,4 @@
-package cn.nubia.systemui.util
+package cn.nubia.systemui.common
 
 import android.graphics.PointF
 

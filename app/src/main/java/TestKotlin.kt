@@ -1,6 +1,6 @@
 
 import cn.nubia.systemui.annotation.LongDef
-import cn.nubia.systemui.common.BiometricShowFlagesConstant
+import cn.nubia.systemui.common.BiometricShowFlagsConstant
 import cn.nubia.systemui.fingerprint.process.ActionList
 import kotlin.reflect.KFunction1
 
@@ -16,9 +16,9 @@ fun test(@LongDef aa:Int){
 }
 
 fun main(args: Array<String>) {
-    println("NORMAL = {${BiometricShowFlagesConstant.flagsToString(BiometricShowFlagesConstant.TYPE_NORMAL_MASK)}}")
-    println("AOD = {${BiometricShowFlagesConstant.flagsToString(BiometricShowFlagesConstant.TYPE_AOD_MASK)}}")
-    println("KEYGUARD = {${BiometricShowFlagesConstant.flagsToString(BiometricShowFlagesConstant.TYPE_KEYGUARD_MASK)}}")
+    println("NORMAL = {${BiometricShowFlagsConstant.flagsToString(BiometricShowFlagsConstant.TYPE_NORMAL_MASK)}}")
+    println("AOD = {${BiometricShowFlagsConstant.flagsToString(BiometricShowFlagsConstant.TYPE_AOD_MASK)}}")
+    println("KEYGUARD = {${BiometricShowFlagsConstant.flagsToString(BiometricShowFlagsConstant.TYPE_KEYGUARD_MASK)}}")
 
     onStop(1234)
 

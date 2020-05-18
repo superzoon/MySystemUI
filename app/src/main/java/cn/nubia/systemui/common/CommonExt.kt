@@ -1,5 +1,7 @@
 package cn.nubia.systemui.common
 
+import android.os.IBinder
+import android.os.PowerManager
 import android.util.Log
 import android.view.View
 import cn.nubia.systemui.NubiaSystemUIApplication
@@ -123,6 +125,10 @@ fun View.onClick(method:() -> Unit):View{
  */
 fun View.setVisible(visible:Boolean){
     this.visibility = if (visible) View.VISIBLE else View.GONE
+}
+
+fun PowerManager.setAODMode(token:IBinder, aodName:String, aodMode:Int, reason:String){
+    //系统方法
 }
 /**
 << shl

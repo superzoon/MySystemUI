@@ -160,4 +160,23 @@ class FingerprintWindowController:Controller, FingerView.Callback {
     fun upAnimation(){
         handlerInvoke(::handleUpAnimation)
     }
+
+    fun syn(action: FingerprintWindowController.()->Unit){
+        mThreadHelper.synInvoke(getHandler()) {
+            action()
+        }
+    }
+
+    fun  <T> syn(action: FingerprintWindowController.()->T):T?{
+        val funcation:()->T={
+            action()
+        }
+        return  mThreadHelper.synInvoke(getHandler(), funcation)
+    }
+
+    fun post(action: FingerprintWindowController.()->Unit){
+        mThreadHelper.handlerInvoke(getHandler()) {
+            action()
+        }
+    }
 }

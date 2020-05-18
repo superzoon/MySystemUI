@@ -2,6 +2,7 @@ package cn.nubia.systemui.common
 
 import android.content.Context
 import android.hardware.input.InputManager
+import android.service.wallpaper.WallpaperService
 import android.util.Log
 import android.view.*
 import cn.nubia.systemui.NubiaSystemUIApplication
@@ -56,6 +57,7 @@ class InputProxy private constructor(val mContext:Context) {
                 }
             }
         }
+        Log.i(TAG, "receiver=${receiver}")
     }
 
     private fun dispatchKey(event: KeyEvent) {
@@ -95,7 +97,7 @@ class InputProxy private constructor(val mContext:Context) {
 
     private fun getInputMonitor(name:String, displayId:Int=Display.DEFAULT_DISPLAY):Any?{
         try {
-            return InputManager::class.java.getDeclaredMethod("monitorGestureInput", String::class.java, Int.javaClass)
+            return InputManager::class.java.getMethod("monitorGestureInput", String::class.java, Int::class.java)
                     .invoke(mInputManager, name, displayId)
         }catch (e:Exception){
             e.printStackTrace()
@@ -104,6 +106,7 @@ class InputProxy private constructor(val mContext:Context) {
     }
 
     private fun getInputChannel(inputMonitor:Any?):Any?{
+        Log.i(TAG, "getInputChannel inputMonitor=${inputMonitor}")
         return inputMonitor?.let {
             it.javaClass.getDeclaredMethod("getInputChannel").invoke(it)
         }

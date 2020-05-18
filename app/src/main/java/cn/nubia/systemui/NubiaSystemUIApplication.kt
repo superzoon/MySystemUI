@@ -5,6 +5,7 @@ import android.content.Context
 import android.content.res.Configuration
 import android.util.Log
 import cn.nubia.systemui.common.Controller
+import cn.nubia.systemui.common.SwitchMonitor
 import cn.nubia.systemui.common.UpdateMonitor
 
 class NubiaSystemUIApplication: Application() {
@@ -18,10 +19,14 @@ class NubiaSystemUIApplication: Application() {
         fun getContext(): Context = mContext!!
     }
 
+    fun init(){
+        SwitchMonitor.get().observer()
+        Controller.init(this)
+    }
+
     override fun onCreate() {
         super.onCreate()
-        Controller.init(this)
-        onConfigurationChanged(resources.configuration)
+        init()
     }
 
     override fun onConfigurationChanged(newConfig: Configuration) {

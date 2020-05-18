@@ -1,26 +1,15 @@
-package cn.nubia.systemui.fingerprint
+package cn.nubia.systemui.common
 
-import android.content.Context
-import android.graphics.PointF
-import android.os.Build
-import android.os.SystemProperties
 import android.os.Trace
 import android.os.VibrationEffect
 import android.os.Vibrator
 import android.util.Log
 import cn.nubia.systemui.NubiaSystemUIApplication
 import cn.nubia.systemui.NubiaThreadHelper
-import cn.nubia.systemui.common.UpdateMonitor
-import cn.nubia.systemui.common.readLine
-import cn.nubia.systemui.common.writeLine
 import java.io.File
-import java.io.FileDescriptor
-import java.io.PrintWriter
 import java.text.DateFormat
 import java.text.SimpleDateFormat
 import java.util.*
-import java.util.concurrent.atomic.AtomicBoolean
-import java.util.concurrent.atomic.AtomicInteger
 
 private val TAG = "${NubiaSystemUIApplication.TAG}.Util"
 
@@ -30,7 +19,6 @@ val HBM_MODE_PATH = "/sys/kernel/lcd_enhance/hbm_mode"
 private val DATE_FORMAT:DateFormat = SimpleDateFormat("HH:mm:ss.SSS")
 
 private var mIsHbm:Boolean = File(HBM_MODE_PATH).readLine() == "1"
-
 
 private val mVibrator by lazy {
     NubiaSystemUIApplication.getContext().getSystemService(Vibrator::class.java);
@@ -54,7 +42,9 @@ fun vibrator(milliseconds:Long, amplitude:Int){
     if(mIsHbm != enable){
         mIsHbm = enable
     }
+    traceStart("hbm")
     File(HBM_MODE_PATH).writeLine("${if (enable) 1 else 0}")
+    traceEnd("hbm")
     return enable
 }
 
@@ -68,11 +58,27 @@ fun getTimeStr():String = DATE_FORMAT.format(Date())
 
 data class InfoStr(val mInfo:String, val mTime:String = getTimeStr())
 
-fun traceLog(log:String){
-    Trace.beginSection("${NubiaSystemUIApplication.TAG}.${log}")
-    Log.i(NubiaSystemUIApplication.TAG,"traceLog log=${log}")
+val mTracesList = mutableListOf<String>()
+
+fun traceStart(target:String){
+    if(target !in mTracesList){
+        mTracesList.add(target)
+        Trace.beginSection("${NubiaSystemUIApplication.TAG}.${target}")
+        Log.i(NubiaSystemUIApplication.TAG,"traceLog start target=${target}")
+    }else{
+        Log.w(NubiaSystemUIApplication.TAG,"trace start err target=${target}")
+        Log.w(NubiaSystemUIApplication.TAG,"has target=${target}, so return")
+    }
     Trace.endSection()
-    Build.BOARD
 }
 
-fun isSupportFpWakeup():Boolean = SystemProperties.getInt("sys.nubia.fpmopde.private", 0) == 1
+fun traceEnd(target:String){
+    if(target in mTracesList){
+        mTracesList.remove(target)
+        Trace.endSection()
+        Log.i(NubiaSystemUIApplication.TAG,"traceLog end target=${target}")
+    }else{
+        Log.w(NubiaSystemUIApplication.TAG,"trace end err target=${target}")
+    }
+}
+

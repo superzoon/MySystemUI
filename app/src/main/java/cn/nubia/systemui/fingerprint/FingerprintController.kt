@@ -2,6 +2,8 @@ package cn.nubia.systemui.fingerprint
 
 import android.content.Context
 import android.os.Handler
+import android.os.VibrationEffect
+import android.os.Vibrator
 import android.util.Log
 import android.view.Display
 import cn.nubia.systemui.fingerprint.process.ActionList.ActionKey
@@ -32,9 +34,19 @@ class FingerprintController(mContext:Context):Controller(mContext), DumpHelper.D
     private var mDisplayStateStr: String = "STATE_UNKNOWN"
     private var mOldProcess: FingerprintProcess? = null
     private var mCurrentProcess: FingerprintProcess? = null
+    private var mFingerprintAttrFlages = 0
+    private var isHbm = false
+    private val mVibrator = mContext.getSystemService(Vibrator::class.java)
 
     private val mMonitor = object : NubiaBiometricMonitor.UpdateMonitorCallback,
             UpdateMonitor.UpdateMonitorCallback, FingerprintWindowController.Callback {
+
+        override fun onAttrFlagsChange(canShow: Boolean, flags: Int) {
+            handlerInvoke {
+                this@FingerprintController.onAttrFlagsChange(canShow, flags)
+            }
+        }
+
         override fun onShow() {
             handlerInvoke (this@FingerprintController::onIconShow)
         }
@@ -194,6 +206,14 @@ class FingerprintController(mContext:Context):Controller(mContext), DumpHelper.D
         }
     }
 
+    private fun onAttrFlagsChange(canShow: Boolean, flages: Int){
+        checkThread()
+        if(flages != mFingerprintAttrFlages){
+            Log.i(TAG, "biometric attr flags change = ${BiometricShowFlagsConstant.flagsToString(flages)} canShow=${canShow}")
+
+        }
+    }
+
     private fun onIconShow() {
         checkThread()
         mCurrentProcess?.onIconShow()
@@ -211,6 +231,7 @@ class FingerprintController(mContext:Context):Controller(mContext), DumpHelper.D
 
     private fun onDoneAuth() {
         checkThread()
+        mWindowController.hide()
         mCurrentProcess?.onDoneAuth()
     }
 
@@ -234,15 +255,39 @@ class FingerprintController(mContext:Context):Controller(mContext), DumpHelper.D
         mWindowController.hide()
     }
 
-    var isHbm = false
     fun onHbmEnable(enbale: Boolean) {
         checkThread()
         isHbm = enbale
         if(isHbm){
             mActionList.invoke(ActionKey.KEY_SCREEN_HBM)
         }
-        mCurrentProcess?.callUiReady()
     }
+
+    fun syn(action: FingerprintController.()->Unit){
+        mThreadHelper.synInvoke(getHandler()) {
+            action()
+        }
+    }
+
+    fun  <T> syn(action: FingerprintController.()->T):T?{
+        val funcation:()->T={
+            action()
+        }
+        return  mThreadHelper.synInvoke(getHandler(), funcation)
+    }
+
+    fun post(action: FingerprintController.()->Unit){
+        mThreadHelper.handlerInvoke(getHandler()) {
+            action()
+        }
+    }
+
+    fun vibrator(){
+        mThreadHelper.handlerBackground {
+            mVibrator.vibrate(VibrationEffect.createOneShot(10, 254))
+        }
+    }
+
 }
 
 

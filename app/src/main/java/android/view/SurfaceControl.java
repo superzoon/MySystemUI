@@ -15,7 +15,8 @@ public class SurfaceControl {
         public Transaction remove(SurfaceControl sc){return this;}
         public void applay(){}
     }
-    public void setLayer(int zorder){}
+    public void setLayer(int zorder){
+    }
     public void setPosition(float x, float y){}
     public void setBufferSize(int width, int height){}
     public void setMatrix(float dsdx, float dtdx, float dtdy, float dsdy){}

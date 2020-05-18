@@ -46,14 +46,15 @@ abstract class Controller(val mContext:Context): DumpHelper.Dump {
 
     fun <T:Controller> getController(name:Class<T>) :T = Controller.getController(name)
 
+
     protected fun synInvoke(action: ()->Unit){
         mThreadHelper.synInvoke(getHandler(), action)
     }
 
+
     protected fun <T> synInvoke(action: ()->T):T?{
         return mThreadHelper.synInvoke(getHandler(), action)
     }
-
 
     protected fun handlerInvoke(action: ()->Unit){
         mThreadHelper.handlerInvoke(getHandler(), action)
@@ -73,6 +74,7 @@ abstract class Controller(val mContext:Context): DumpHelper.Dump {
         fun init(context:NubiaSystemUIApplication){
             mMap[FingerprintController::class.java] = FingerprintController(context)
             mMap[FingerprintWindowController::class.java] = FingerprintWindowController(context)
+            mMap[PowerController::class.java] = PowerController(context)
         }
 
         fun <T:Controller> getController(name:Class<T>):T =  if(mMap.containsKey(name)){

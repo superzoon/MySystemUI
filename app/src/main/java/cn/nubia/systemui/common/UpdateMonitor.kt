@@ -3,6 +3,7 @@ package cn.nubia.systemui.common
 import android.content.*
 import android.hardware.biometrics.IBiometricServiceReceiverInternal
 import android.hardware.display.DisplayManager
+import android.net.Uri
 import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
@@ -17,7 +18,6 @@ import cn.nubia.systemui.fingerprint.NubiaBiometricMonitor
 import cn.nubia.systemui.fingerprint.SystemBiometricMonitor
 import cn.nubia.systemui.NubiaThreadHelper
 import cn.nubia.systemui.R
-import cn.nubia.systemui.fingerprint.InfoStr
 import java.io.File
 import java.io.FileDescriptor
 import java.io.PrintWriter
@@ -43,7 +43,7 @@ class UpdateMonitor : DumpHelper.Dump {
     private val mInfoList = arrayOfNulls<InfoStr>(40)
     private var mIndexForInfo = 0
     private var mSystemUI:SystemUI? = null
-    var mBiometricAttrFlages = 0
+    var mBiometricAttrFlags = 0
     private val mContext by lazy {
         NubiaSystemUIApplication.getContext()
     }
@@ -67,6 +67,7 @@ class UpdateMonitor : DumpHelper.Dump {
         fun onPhoneStateChange(state:Int, phoneNumber: String?){}
         fun onFingerUp(){}
         fun onFingerDown(){}
+        fun callPackageChange(add: Boolean, uri: Uri?){}
     }
 
     val mPhoneStateListener = object :PhoneStateListener(){
@@ -107,7 +108,7 @@ class UpdateMonitor : DumpHelper.Dump {
         mContext.registerReceiver(mInternalObj, filter)
         mDisplayManager.registerDisplayListener(mInternalObj, NubiaThreadHelper.get().getMainHander())
         mTelephonyManager.listen(mPhoneStateListener, PhoneStateListener.LISTEN_CALL_STATE)
-        mHandler.post{UpdateMonitor.get().callDisplayChange(Display.DEFAULT_DISPLAY, mDisplayManager.getDisplay(Display.DEFAULT_DISPLAY).state)}
+        handlerPost{UpdateMonitor.get().callDisplayChange(Display.DEFAULT_DISPLAY, mDisplayManager.getDisplay(Display.DEFAULT_DISPLAY).state)}
         File(mContext.getString(R.string.tp_action_node)).monitor {
             when(it){
                 "finger_down" -> {
@@ -121,6 +122,10 @@ class UpdateMonitor : DumpHelper.Dump {
                 }
             }
         }
+    }
+
+    private fun handlerPost(action:()->Unit){
+        mHandler.post(action)
     }
 
     fun getSystemUI():SystemUI? = mSystemUI
@@ -152,7 +157,7 @@ class UpdateMonitor : DumpHelper.Dump {
 
 
     fun callSystemUIDisConnect(){
-        mHandler.post{
+        handlerPost{
             mSystemUI = null
             mList.forEach{
                 it.get()?.onSystemUIDisConnect()
@@ -197,12 +202,12 @@ class UpdateMonitor : DumpHelper.Dump {
                 SystemBiometricMonitor.get().callBiometricError(error)
             }
             BiometricConstant.TYPE_ATTR_FLAGES->{
-                callBiometricAttrFlagesChange(data.getInt("flags", 0))
+                callBiometricAttrFlagsChange(data.getInt("flags", 0))
             }
             BiometricConstant.TYPE_INFO-> {
                 if(data.containsKey("info")){
                     data.getString("info")?.also {
-                        mInfoList[mIndexForInfo++]=InfoStr(it)
+                        mInfoList[mIndexForInfo++]= InfoStr(it)
                         it.split("_")?.apply {
                             val indexStr = get(0)
                             when(indexStr){
@@ -255,20 +260,19 @@ class UpdateMonitor : DumpHelper.Dump {
         }
     }
 
-    private fun callBiometricAttrFlagesChange(flages:Int){
-        if(BiometricShowFlagesConstant.isValidState(flages)){
-            if(mBiometricAttrFlages != flages){
-                mBiometricAttrFlages = flages
-                var canShow = BiometricShowFlagesConstant.canShowFingerprint(flages)
-                Log.i(TAG, "biometric attr flages change = ${BiometricShowFlagesConstant.flagsToString(flages)} canShow=${canShow}")
+    private fun callBiometricAttrFlagsChange(flags:Int){
+        if(BiometricShowFlagsConstant.isValidState(flags)){
+            if(mBiometricAttrFlags != flags) {
+                mBiometricAttrFlags = flags
+                NubiaBiometricMonitor.get().callAttrFlagsChange(BiometricShowFlagsConstant.canShowFingerprint(flags), mBiometricAttrFlags)
             }
         }else{
-            throw IllegalAccessError("error biometric attr flages change, flages = ${flages}")
+            throw IllegalAccessError("error biometric attr flages change, flages = ${flags}")
         }
     }
 
     fun callSystemUIConnect(systemui: SystemUI){
-        mHandler.post{
+        handlerPost{
             mSystemUI = systemui
             mList.forEach{
                 it.get()?.onSystemUIConnect(systemui)
@@ -277,7 +281,7 @@ class UpdateMonitor : DumpHelper.Dump {
     }
 
     private fun callPhoneStateChange(state: Int, phoneNumber: String?) {
-        mHandler.post{
+        handlerPost{
             mPhoneState = state
             mList.forEach{
                 it.get()?.onPhoneStateChange(state, phoneNumber)
@@ -288,7 +292,7 @@ class UpdateMonitor : DumpHelper.Dump {
     fun callDisplayChange(displayId:Int, state:Int){
         if(!(mDisplayStateMap.containsKey(displayId) && mDisplayStateMap.get(displayId)==state)){
             mDisplayStateMap.put(displayId, state)
-            mHandler.post{
+            handlerPost{
                 mList.forEach{
                     it.get()?.onDisplayChange(displayId, state, when(state){
                         Display.STATE_OFF -> "STATE_OFF"
@@ -305,7 +309,7 @@ class UpdateMonitor : DumpHelper.Dump {
 
     fun addCallback(callback: UpdateMonitorCallback?){
         callback.apply {
-            mHandler.post{
+            handlerPost{
                 if(mList.find { it.get()== this } == null){
                     mList.add(WeakReference(this))
                 }
@@ -316,14 +320,14 @@ class UpdateMonitor : DumpHelper.Dump {
     }
 
     fun removeCallback(callback: UpdateMonitorCallback?){
-        mHandler.post{
+        handlerPost{
             mList.removeAll { it.get() == callback }
         }
     }
 
     fun callFocusWindowChange(name: ComponentName) {
 
-        mHandler.post{
+        handlerPost{
             mCurrentWindow = name
             mList.forEach{
                 it.get()?.onFocusWindowChange(name)
@@ -332,7 +336,7 @@ class UpdateMonitor : DumpHelper.Dump {
     }
 
     fun callStartActivity(name: ComponentName) {
-        mHandler.post{
+        handlerPost{
             mCurrentActivity = name
             mList.forEach{
                 it.get()?.onStartActivity(name)
@@ -341,7 +345,7 @@ class UpdateMonitor : DumpHelper.Dump {
     }
 
     fun callStopActivity(name: ComponentName) {
-        mHandler.post{
+        handlerPost{
             mList.forEach{
                 it.get()?.onStopActivity(name)
             }
@@ -349,7 +353,7 @@ class UpdateMonitor : DumpHelper.Dump {
     }
 
     fun callAodViewChange(show: Boolean) {
-        mHandler.post{
+        handlerPost{
             isAodViewShow = show
             mList.forEach{
                 it.get()?.onAodViewChange(show)
@@ -358,7 +362,7 @@ class UpdateMonitor : DumpHelper.Dump {
     }
 
     fun callKeyguardChange(show: Boolean, occluded: Boolean) {
-        mHandler.post{
+        handlerPost{
             mKeyguardShow = show
             isOccluded = occluded
             mList.forEach{
@@ -368,7 +372,7 @@ class UpdateMonitor : DumpHelper.Dump {
     }
 
     fun callStartWakingUp() {
-        mHandler.post{
+        handlerPost{
             isWakeUp = true
             mList.forEach{
                 it.get()?.onStartWakingUp()
@@ -377,7 +381,7 @@ class UpdateMonitor : DumpHelper.Dump {
     }
 
     fun callFinishedWakingUp() {
-        mHandler.post{
+        handlerPost{
             mList.forEach{
                 it.get()?.onFinishedWakingUp()
             }
@@ -385,7 +389,7 @@ class UpdateMonitor : DumpHelper.Dump {
     }
 
     fun callStartGoingToSleep(reason: Int) {
-        mHandler.post{
+        handlerPost{
             isWakeUp = false
             mList.forEach{
                 it.get()?.onStartGoingToSleep(reason)
@@ -394,7 +398,7 @@ class UpdateMonitor : DumpHelper.Dump {
     }
 
     fun callFinishedGoingToSleep() {
-        mHandler.post{
+        handlerPost{
             mList.forEach{
                 it.get()?.onFinishedGoingToSleep()
             }
@@ -402,7 +406,7 @@ class UpdateMonitor : DumpHelper.Dump {
     }
 
     fun callFingerUp() {
-        mHandler.post{
+        handlerPost{
             mList.forEach{
                 it.get()?.onFingerUp()
             }
@@ -410,7 +414,7 @@ class UpdateMonitor : DumpHelper.Dump {
     }
 
     fun callFingerDown() {
-        mHandler.post{
+        handlerPost{
             mList.forEach{
                 it.get()?.onFingerDown()
             }
@@ -418,7 +422,7 @@ class UpdateMonitor : DumpHelper.Dump {
     }
 
     fun callFingerprintKeycode(keycode: Int) {
-        mHandler.post{
+        handlerPost{
             when(keycode){
                 KeyEvent.KEYCODE_F11 -> {
                     mList.forEach {
@@ -433,6 +437,15 @@ class UpdateMonitor : DumpHelper.Dump {
                 else -> {
                     Log.w(TAG, "ERROR fingerprint keycode ${keycode}")
                 }
+            }
+        }
+    }
+
+    fun callPackageChange(add: Boolean, uri: Uri?) {
+        Log.w(TAG, "callPackageChange add = ${add} uri=${uri}")
+        handlerPost{
+            mList.forEach{
+                it.get()?.callPackageChange(add, uri)
             }
         }
     }
