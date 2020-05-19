@@ -5,6 +5,7 @@ local.properties
 build
 captures
 .externalNativeBuild
+inspectionProfiles
 ## IntelliJ IDEA ##
 /.idea
 *.iws
