@@ -81,4 +81,3 @@ fun traceEnd(target:String){
         Log.w(NubiaSystemUIApplication.TAG,"trace end err target=${target}")
     }
 }
-

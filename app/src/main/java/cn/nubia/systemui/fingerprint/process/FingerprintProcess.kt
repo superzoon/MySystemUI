@@ -16,6 +16,12 @@ import java.io.PrintWriter
 
 abstract class  FingerprintProcess(val mContext:Context, val mFpController:FingerprintController,
                                    val mWindowController: FingerprintWindowController){
+    companion object {
+        val STATE_AUTH_FINGER_UP = 1
+        val STATE_AUTH_DONE = 0
+        val STATE_AUTH_ERROR = -1
+        val STATE_AUTH_FAIL = -2
+    }
     val TAG by lazy { "${NubiaSystemUIApplication.TAG}.${this.javaClass.simpleName}"}
     val mThreadHelper = NubiaThreadHelper.get()
     val mFpManager :FingerprintManager = mContext.getSystemService(FingerprintManager::class.java)
@@ -144,10 +150,7 @@ abstract class  FingerprintProcess(val mContext:Context, val mFpController:Finge
     open fun onFingerUp(){
         when(mState){
             ProcessState.UPING -> {
-
-                mWindowController.syn{
-                    showFingerUpImage()
-                }
+                onAuthStateChange(STATE_AUTH_FINGER_UP);
                 mThreadHelper.handlerBackground {
                     mFpManager.processCmd(BiometricCmd.CMD_UP, 0, 0 , byteArrayOf(), 0)
                     setHBM(false)
@@ -166,9 +169,28 @@ abstract class  FingerprintProcess(val mContext:Context, val mFpController:Finge
     }
     open fun onIconShow() { }
     open fun onIconHide() { }
-    open fun onDoneAuth() { }
-    open fun onAuthError() { }
-    open fun onFailAuth() { }
+    open fun onDoneAuth() {
+        onAuthStateChange(STATE_AUTH_DONE);
+    }
+    open fun onAuthError() {
+        onAuthStateChange(STATE_AUTH_ERROR);
+    }
+    open fun onFailAuth() {
+        onAuthStateChange(STATE_AUTH_FAIL);
+    }
+    private fun onAuthStateChange(state:Int){
+        mWindowController.post{
+            showFingerUpImage()
+        }
+        when(state){
+            STATE_AUTH_FINGER_UP, STATE_AUTH_DONE ->{
+
+            }
+            STATE_AUTH_ERROR, STATE_AUTH_FAIL ->{
+
+            }
+        }
+    }
     open fun dump(fd: FileDescriptor?, writer: PrintWriter?, args: Array<out String>?){
 
     }

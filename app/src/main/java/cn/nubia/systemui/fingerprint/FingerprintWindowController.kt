@@ -14,6 +14,7 @@ import cn.nubia.systemui.NubiaSystemUIService
 import cn.nubia.systemui.NubiaThreadHelper
 import cn.nubia.systemui.R
 import cn.nubia.systemui.common.Controller
+import cn.nubia.systemui.common.setVisible
 import cn.nubia.systemui.fingerprint.view.FingerView
 
 class FingerprintWindowController:Controller, FingerView.Callback {
@@ -27,8 +28,10 @@ class FingerprintWindowController:Controller, FingerView.Callback {
     val mHandler = NubiaThreadHelper.get().getMainHander()
     private var mShow = false
     private var mFingerView:FingerView? = null
+    var mAllowShow = false;
+    var mUIFlages =0
     val mFingerprintController by lazy { getController(FingerprintController::class.java) }
-   val mWindowManager = mContext.getSystemService(WindowManager::class.java)
+    val mWindowManager = mContext.getSystemService(WindowManager::class.java)
 
     companion object {
         val TAG = "${NubiaSystemUIApplication.TAG}.WindowControl"
@@ -63,6 +66,7 @@ class FingerprintWindowController:Controller, FingerView.Callback {
             screenOrientation = ActivityInfo.SCREEN_ORIENTATION_PORTRAIT
             windowAnimations = 0
             packageName = mContext.packageName
+            alpha = if(mAllowShow ) 1f else 0f
             title = "FingerprintUIView"
         }
     }
@@ -177,6 +181,16 @@ class FingerprintWindowController:Controller, FingerView.Callback {
     fun post(action: FingerprintWindowController.()->Unit){
         mThreadHelper.handlerInvoke(getHandler()) {
             action()
+        }
+    }
+
+    fun onAttrFlagsChange(allowShow: Boolean, flages: Int) {
+        checkThread()
+        mAllowShow = allowShow
+        mUIFlages = flages
+        mAllowShow?.let {
+            mLayoutParams.alpha=if(mAllowShow) 1f else 0f
+            mWindowManager.updateViewLayout(mFingerView, mLayoutParams)
         }
     }
 }

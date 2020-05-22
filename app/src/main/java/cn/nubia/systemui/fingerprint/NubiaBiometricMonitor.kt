@@ -20,7 +20,7 @@ class NubiaBiometricMonitor : DumpHelper.Dump {
         fun onFailAuth()
         fun onAuthError()
         fun onAcquired(info:Int)
-        fun onAttrFlagsChange(canShow: Boolean, flags: Int)
+        fun onAttrFlagsChange(allowShow: Boolean, flags: Int)
     }
 
     companion object {
@@ -105,10 +105,10 @@ class NubiaBiometricMonitor : DumpHelper.Dump {
         }
     }
 
-    fun callAttrFlagsChange(canShow: Boolean, flags: Int) {
+    fun callAttrFlagsChange(allowShow: Boolean, flags: Int) {
         mHandler.post{
             mList.forEach{
-                it.get()?.onAttrFlagsChange(canShow, flags)
+                it.get()?.onAttrFlagsChange(allowShow, flags)
             }
         }
     }

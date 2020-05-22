@@ -34,16 +34,17 @@ class FingerprintController(mContext:Context):Controller(mContext), DumpHelper.D
     private var mDisplayStateStr: String = "STATE_UNKNOWN"
     private var mOldProcess: FingerprintProcess? = null
     private var mCurrentProcess: FingerprintProcess? = null
-    private var mFingerprintAttrFlages = 0
+    private var mFingerprintUIFlages = 0
+    private var mAllowShow = false
     private var isHbm = false
     private val mVibrator = mContext.getSystemService(Vibrator::class.java)
 
     private val mMonitor = object : NubiaBiometricMonitor.UpdateMonitorCallback,
             UpdateMonitor.UpdateMonitorCallback, FingerprintWindowController.Callback {
 
-        override fun onAttrFlagsChange(canShow: Boolean, flags: Int) {
+        override fun onAttrFlagsChange(allowShow: Boolean, flags: Int) {
             handlerInvoke {
-                this@FingerprintController.onAttrFlagsChange(canShow, flags)
+                this@FingerprintController.onAttrFlagsChange(allowShow, flags)
             }
         }
 
@@ -206,10 +207,15 @@ class FingerprintController(mContext:Context):Controller(mContext), DumpHelper.D
         }
     }
 
-    private fun onAttrFlagsChange(canShow: Boolean, flages: Int){
+    private fun onAttrFlagsChange(allowShow: Boolean, flages: Int){
         checkThread()
-        if(flages != mFingerprintAttrFlages){
-            Log.i(TAG, "biometric attr flags change = ${BiometricShowFlagsConstant.flagsToString(flages)} canShow=${canShow}")
+        if(flages != mFingerprintUIFlages){
+            Log.i(TAG, "biometric attr flags change = ${BiometricShowFlagsConstant.flagsToString(flages)} allowShow=${allowShow}")
+            mFingerprintUIFlages = flages;
+            mAllowShow = allowShow
+            mWindowController.post {
+                this.onAttrFlagsChange(allowShow, flages)
+            }
 
         }
     }
