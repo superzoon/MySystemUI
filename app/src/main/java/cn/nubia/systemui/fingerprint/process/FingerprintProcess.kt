@@ -11,6 +11,7 @@ import cn.nubia.systemui.NubiaThreadHelper
 import cn.nubia.systemui.common.*
 import cn.nubia.systemui.fingerprint.FingerprintWindowController
 import cn.nubia.systemui.common.setHBM
+import cn.nubia.systemui.fingerprint.action.ActionEvent
 import java.io.FileDescriptor
 import java.io.PrintWriter
 
@@ -54,20 +55,36 @@ abstract class  FingerprintProcess(val mContext:Context, val mFpController:Finge
         }
     }
 
+    fun delay(delay:Long, actin:()->Unit){
+        mFpController.getHandler().postDelayed(actin, delay)
+    }
+
     fun callFingerDown() {
         when (mState) {
             ProcessState.NORMAL,ProcessState.UPING -> {
                 //待处理项
                 mState = ProcessState.DOWNING
+                mFpController.mActionEvent.addFingerDown(ActionEvent.Action("onFingerDown"){
+                    Log.w(TAG, "onFingerDown")
+                    onFingerDown()
+                })
+                triggerFingerDown()
             }
             else -> {
                 Log.w(TAG, "onTouchDown, but current state = ${mState}")
             }
         }
-        onFingerDown()
     }
 
-    open fun onFingerDown(){
+    open protected fun triggerFingerDown(){
+        if(mState == ProcessState.DOWNING){
+            delay(getFingerDownDelay()){
+                mFpController.onFingerDown()
+            }
+        }
+    }
+
+    open protected fun onFingerDown(){
 
         when (mState) {
             ProcessState.DOWNING -> {
@@ -75,7 +92,7 @@ abstract class  FingerprintProcess(val mContext:Context, val mFpController:Finge
                     showFingerDownImage()
                 }
 
-                mFpController.mActionList.addHbmAction(ActionList.Action("down"){
+                mFpController.mActionEvent.addHbmAction(ActionEvent.Action("down"){
                     Log.w(TAG, "hbm")
                 })
 
@@ -102,15 +119,27 @@ abstract class  FingerprintProcess(val mContext:Context, val mFpController:Finge
             ProcessState.DOWN  ->{
                 //待处理项
                 mState = ProcessState.UI_READYING
+                mFpController.mActionEvent.addFingerUIReady(ActionEvent.Action("onFingerUIReady"){
+                    Log.w(TAG, "onFingerUIReady")
+                    onUIReady()
+                })
+                triggerFingerUIReadyDelay()
             }
             else -> {
                 Log.w(TAG, "callUiReady, but current state = ${mState}")
             }
         }
-        onUiReady()
     }
 
-    open fun onUiReady(){
+    open protected fun triggerFingerUIReadyDelay(){
+        if(mState == ProcessState.UI_READYING){
+            delay(getFingerUIReadyDelay()){
+                mFpController.onFingerUIReady()
+            }
+        }
+    }
+
+    open protected fun onUIReady(){
         when(mState){
             ProcessState.UI_READYING -> {
                 mThreadHelper.handlerBackground {
@@ -130,24 +159,39 @@ abstract class  FingerprintProcess(val mContext:Context, val mFpController:Finge
 
     fun callFingerUp(){
         when(mState){
-            ProcessState.DOWNING, ProcessState.DOWN  ->{
-                //待处理项
+            ProcessState.DOWNING->{
                 Log.i(TAG, "callFingerUp, but current state = ${mState}")
-                mState = ProcessState.UPING
             }
-            ProcessState.UI_READYING, ProcessState.UI_READY  ->{
+            ProcessState.DOWN, ProcessState.UI_READYING ->{
                 //待处理项
                 Log.i(TAG, "callFingerUp, but current state = ${mState}")
                 mState = ProcessState.UPING
+                mFpController.mActionEvent.clearAllAction()
+                mFpController.onFingerUp()
+            }
+            ProcessState.UI_READY  ->{
+                //待处理项
+                Log.i(TAG, "callFingerUp, but current state = ${mState}")
+                mState = ProcessState.UPING
+                mFpController.mActionEvent.addFingerUp(ActionEvent.Action("onFingerUp"){
+                    Log.w(TAG, "onFingerUp")
+                    onFingerUp();
+                })
+                triggerFingerUp()
             }
             else -> {
                 Log.w(TAG, "callFingerUp, but current state = ${mState}")
             }
         }
-        onFingerUp();
     }
-
-    open fun onFingerUp(){
+    open protected fun triggerFingerUp(){
+        if(mState == ProcessState.UPING){
+            delay(getFingerUpDelay()){
+                mFpController.onFingerUp()
+            }
+        }
+    }
+    open protected fun onFingerUp(){
         when(mState){
             ProcessState.UPING -> {
                 onAuthStateChange(STATE_AUTH_FINGER_UP);
@@ -167,6 +211,9 @@ abstract class  FingerprintProcess(val mContext:Context, val mFpController:Finge
             }
         }
     }
+    abstract fun getFingerDownDelay():Long
+    abstract fun getFingerUIReadyDelay():Long
+    abstract fun getFingerUpDelay():Long
     open fun onIconShow() { }
     open fun onIconHide() { }
     open fun onDoneAuth() {

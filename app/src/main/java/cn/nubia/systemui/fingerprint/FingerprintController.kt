@@ -6,11 +6,12 @@ import android.os.VibrationEffect
 import android.os.Vibrator
 import android.util.Log
 import android.view.Display
-import cn.nubia.systemui.fingerprint.process.ActionList.ActionKey
+import cn.nubia.systemui.fingerprint.action.ActionEvent.ActionKey
 import cn.nubia.systemui.NubiaSystemUIApplication
 import cn.nubia.systemui.NubiaSystemUIService
 import cn.nubia.systemui.NubiaThreadHelper
 import cn.nubia.systemui.common.*
+import cn.nubia.systemui.fingerprint.action.ActionEvent
 import cn.nubia.systemui.fingerprint.process.*
 import java.io.FileDescriptor
 import java.io.PrintWriter
@@ -26,7 +27,7 @@ class FingerprintController(mContext:Context):Controller(mContext), DumpHelper.D
 
     private val mWindowController by lazy { getController(FingerprintWindowController::class.java) }
 
-    val mActionList = ActionList(this)
+    val mActionEvent = ActionEvent(this)
     private var isConnection = false
     private var isFingerDown = false
     private var mSystemUI: SystemUI? = null
@@ -58,12 +59,12 @@ class FingerprintController(mContext:Context):Controller(mContext), DumpHelper.D
 
         override fun onFingerDown() {
             Log.i(TAG, "onFingerDown 3")
-            handlerInvoke (this@FingerprintController::onFingerDown)
+            handlerInvoke (this@FingerprintController::callFingerDown)
         }
 
         override fun onFingerUp() {
             Log.i(TAG, "onFingerUp 3")
-            handlerInvoke (this@FingerprintController::onFingerUp)
+            handlerInvoke (this@FingerprintController::callFingerUp)
         }
 
         val DEBUG = false
@@ -132,7 +133,7 @@ class FingerprintController(mContext:Context):Controller(mContext), DumpHelper.D
             mDisplayState = state
             mDisplayStateStr = stateStr
             if(mDisplayState in ActionKey){
-                mActionList[mDisplayState].removeAll {
+                mActionEvent[mDisplayState].removeAll {
                     it.invoke()
                 }
             }else{
@@ -163,7 +164,7 @@ class FingerprintController(mContext:Context):Controller(mContext), DumpHelper.D
         NubiaBiometricMonitor.get().removeCallback(mMonitor)
     }
 
-    fun onFingerDown() {
+    fun callFingerDown() {
         checkThread()
         Log.i(TAG, "onFingerDown 4 ${isFingerDown} ${mDisplayState}")
         if(!isFingerDown){
@@ -187,7 +188,18 @@ class FingerprintController(mContext:Context):Controller(mContext), DumpHelper.D
         Log.i(TAG, "onFingerDown ${mCurrentProcess} ${mCurrentProcess?.javaClass?.simpleName}")
     }
 
-    fun onFingerUp() {
+    fun onFingerDown(){
+        checkThread()
+        mActionEvent.invoke(ActionKey.KEY_ON_FINGER_DOWN)
+
+    }
+
+    fun onFingerUIReady(){
+        checkThread()
+        mActionEvent.invoke(ActionKey.KEY_ON_FINGER_UI_READY)
+    }
+
+    fun callFingerUp() {
         checkThread()
         Log.i(TAG, "onFingerUp 3 ${isFingerDown} ${mCurrentProcess} ${mCurrentProcess?.javaClass?.simpleName}")
         if(isFingerDown){
@@ -196,6 +208,11 @@ class FingerprintController(mContext:Context):Controller(mContext), DumpHelper.D
             mOldProcess = mCurrentProcess
             mCurrentProcess = null
         }
+    }
+
+    fun onFingerUp(){
+        checkThread()
+        mActionEvent.invoke(ActionKey.KEY_ON_FINGER_UP)
     }
 
     override fun dump(fd: FileDescriptor?, writer: PrintWriter?, args: Array<out String>?) {
@@ -265,7 +282,7 @@ class FingerprintController(mContext:Context):Controller(mContext), DumpHelper.D
         checkThread()
         isHbm = enbale
         if(isHbm){
-            mActionList.invoke(ActionKey.KEY_SCREEN_HBM)
+            mActionEvent.invoke(ActionKey.KEY_SCREEN_HBM)
         }
     }
 

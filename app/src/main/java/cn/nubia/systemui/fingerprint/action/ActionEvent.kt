@@ -1,13 +1,11 @@
-package cn.nubia.systemui.fingerprint.process
+package cn.nubia.systemui.fingerprint.action
 
-import android.view.Choreographer
 import android.view.Display
-import cn.nubia.systemui.NubiaThreadHelper
 import cn.nubia.systemui.fingerprint.annotation.ActionKeyInt
 import cn.nubia.systemui.common.Controller
 import java.lang.AssertionError
 
-class ActionList(val controller: Controller) {
+class ActionEvent(val controller: Controller) {
 
     class Action(val name:String, val action:()->Unit):Runnable{
         override fun run() {
@@ -30,16 +28,18 @@ class ActionList(val controller: Controller) {
             val KEY_SCREEN_ON = Display.STATE_ON
             val KEY_SCREEN_DOZE = Display.STATE_DOZE
             val KEY_SCREEN_HBM = 1.shl(4)
-            val KEY_SCREEN_FRAME = 1.shl(5)
-            val KEY_SCREEN_2FRAME = 1.shl(6)
+            val KEY_ON_FINGER_DOWN = 1.shl(7)
+            val KEY_ON_FINGER_UI_READY = 1.shl(8)
+            val KEY_ON_FINGER_UP = 1.shl(9)
 
             operator fun contains(key: Int): Boolean {
                 return (key == KEY_SCREEN_OFF) ||
                         (key <= KEY_SCREEN_ON) ||
                         (key <= KEY_SCREEN_DOZE) ||
                         (key <= KEY_SCREEN_HBM) ||
-                        (key <= KEY_SCREEN_FRAME)||
-                        (key <= KEY_SCREEN_2FRAME)
+                        (key <= KEY_ON_FINGER_DOWN)||
+                        (key <= KEY_ON_FINGER_UI_READY)||
+                        (key <= KEY_ON_FINGER_UP)
             }
         }
     }
@@ -48,22 +48,19 @@ class ActionList(val controller: Controller) {
     private val SCREEN_DOZE_ACTIONS = mutableListOf<Action>()
     private val SCREEN_ON_ACTIONS = mutableListOf<Action>()
     private val SCREEN_HBM_ACTIONS = mutableListOf<Action>()
-    private val SCREEN_FRAME_ACTIONS = mutableListOf<Action>()
-    private val SCREEN_2FRAME_ACTIONS = mutableListOf<Action>()
+    private val FINGER_DOWN_ACTIONS = mutableListOf<Action>()
+    private val FINGER_UI_READY_ACTIONS = mutableListOf<Action>()
+    private val FINGER_UP_ACTIONS = mutableListOf<Action>()
 
-    private val mChoreographer by lazy {
-        NubiaThreadHelper.get().synMainInvoke{
-            Choreographer.getInstance()
-        }!!
-    }
 
     private val mProcessAction: Map<Int, MutableList<Action>> = mapOf(
             ActionKey.KEY_SCREEN_OFF to SCREEN_OFF_ACTIONS,
             ActionKey.KEY_SCREEN_ON to SCREEN_ON_ACTIONS,
             ActionKey.KEY_SCREEN_DOZE to SCREEN_DOZE_ACTIONS,
             ActionKey.KEY_SCREEN_HBM to SCREEN_HBM_ACTIONS,
-            ActionKey.KEY_SCREEN_FRAME to SCREEN_FRAME_ACTIONS,
-            ActionKey.KEY_SCREEN_2FRAME to SCREEN_2FRAME_ACTIONS
+            ActionKey.KEY_ON_FINGER_DOWN to FINGER_DOWN_ACTIONS,
+            ActionKey.KEY_ON_FINGER_UI_READY to FINGER_UI_READY_ACTIONS,
+            ActionKey.KEY_ON_FINGER_UP to FINGER_UP_ACTIONS
     )
 
     operator fun get(@ActionKeyInt key: Int): MutableList<Action> {
@@ -93,43 +90,19 @@ class ActionList(val controller: Controller) {
         addAction(ActionKey.KEY_SCREEN_HBM, flowAction)
     }
 
-    fun addFrameAction(flowAction: Action) {
+    fun addFingerDown(flowAction: Action) {
         controller.checkThread()
-        if(this[ActionKey.KEY_SCREEN_FRAME].size==0){
-            NubiaThreadHelper.get().apply {
-                synMainInvoke {
-                    mChoreographer.postFrameCallback {
-                        handlerInvoke(controller.getHandler()){
-                            invoke(ActionKey.KEY_SCREEN_FRAME)
-                            this@ActionList[ActionKey.KEY_SCREEN_2FRAME].removeAll{
-                                addFrameAction(it)
-                                true
-                            }
-                        }
-                    }
-                }
-            }
-        }
-        addAction(ActionKey.KEY_SCREEN_FRAME, flowAction)
+        addAction(ActionKey.KEY_ON_FINGER_DOWN, flowAction)
     }
 
-    fun add2FrameAction(flowAction: Action) {
+    fun addFingerUIReady(flowAction: Action) {
         controller.checkThread()
-        if(this[ActionKey.KEY_SCREEN_FRAME].size==0){
-            NubiaThreadHelper.get().apply {
-                synMainInvoke {
-                    mChoreographer.postFrameCallback {
-                        handlerInvoke(controller.getHandler()){
-                            this@ActionList[ActionKey.KEY_SCREEN_2FRAME].removeAll{
-                                addFrameAction(it)
-                                true
-                            }
-                        }
-                    }
-                }
-            }
-        }
-        addAction(ActionKey.KEY_SCREEN_2FRAME, flowAction)
+        addAction(ActionKey.KEY_ON_FINGER_UI_READY, flowAction)
+    }
+
+    fun addFingerUp(flowAction: Action) {
+        controller.checkThread()
+        addAction(ActionKey.KEY_ON_FINGER_UP, flowAction)
     }
 
     fun addAction(@ActionKeyInt key: Int, flowAction: Action) {
@@ -159,14 +132,19 @@ class ActionList(val controller: Controller) {
         removeAction(ActionKey.KEY_SCREEN_HBM, flowAction)
     }
 
-    fun removeFrameAction(flowAction: Action) {
+    fun removeFingerDown(flowAction: Action) {
         controller.checkThread()
-        removeAction(ActionKey.KEY_SCREEN_FRAME, flowAction)
+        removeAction(ActionKey.KEY_ON_FINGER_DOWN, flowAction)
     }
 
-    fun remove2FrameAction(flowAction: Action) {
+    fun removeFingerUIReady(flowAction: Action) {
         controller.checkThread()
-        removeAction(ActionKey.KEY_SCREEN_2FRAME, flowAction)
+        removeAction(ActionKey.KEY_ON_FINGER_UI_READY, flowAction)
+    }
+
+    fun removeFingerUp(flowAction: Action) {
+        controller.checkThread()
+        removeAction(ActionKey.KEY_ON_FINGER_UP, flowAction)
     }
 
     fun removeAction(@ActionKeyInt key: Int, flowAction: Action) {
@@ -181,12 +159,19 @@ class ActionList(val controller: Controller) {
         this[key].clear()
     }
 
+    fun clearAllAction() {
+        controller.checkThread()
+        mProcessAction.forEach { t, u ->
+            u.clear()
+        }
+    }
+
     fun invoke(@ActionKeyInt key: Int) {
         if (key in ActionKey) {
-            this[key].removeAll {
+            this[key].forEach() {
                 it.invoke()
-                true
             }
+            this[key].clear()
         } else {
             throw IllegalAccessError("Illegal key=${key}")
         }

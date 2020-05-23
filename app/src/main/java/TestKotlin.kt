@@ -1,12 +1,12 @@
 
 import cn.nubia.systemui.annotation.LongDef
 import cn.nubia.systemui.common.BiometricShowFlagsConstant
-import cn.nubia.systemui.fingerprint.process.ActionList
+import cn.nubia.systemui.fingerprint.action.ActionEvent
 import kotlin.reflect.KFunction1
 
 fun test(@LongDef aa:Int){
     when (aa){
-        in ActionList.ActionKey ->{
+        in ActionEvent.ActionKey ->{
             print(aa)
         }
         else -> {
