@@ -23,7 +23,7 @@ class FingerprintController(mContext:Context):Controller(mContext), DumpHelper.D
         val TAG = "${NubiaSystemUIApplication.TAG}.FingerprintController"
     }
 
-    private val mHandler = NubiaThreadHelper.get().getFingerHander()
+    private val mHandler = NubiaThreadHelper.get().getFpFrontHander()
 
     private val mWindowController by lazy { getController(FingerprintWindowController::class.java) }
 
@@ -306,7 +306,7 @@ class FingerprintController(mContext:Context):Controller(mContext), DumpHelper.D
     }
 
     fun vibrator(){
-        mThreadHelper.handlerBackground {
+        mThreadHelper.handlerFpBg {
             mVibrator.vibrate(VibrationEffect.createOneShot(10, 254))
         }
     }

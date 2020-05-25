@@ -25,7 +25,7 @@ private val mVibrator by lazy {
 }
 
 fun vibrator(milliseconds:Long, amplitude:Int){
-    NubiaThreadHelper.get().getBgHander().post {
+    NubiaThreadHelper.get().getFpBgHander().post {
         mVibrator.vibrate(VibrationEffect.createOneShot(milliseconds, amplitude))
     }
 }

@@ -17,7 +17,7 @@ class PowerController(mContext: Context): Controller(mContext), UpdateMonitor.Up
     private val mPowerManager = mContext.getSystemService(PowerManager::class.java)
     private val mWakeLockMap = mutableMapOf<String, PowerManager.WakeLock>()
     override fun getHandler(): Handler {
-        return NubiaThreadHelper.get().getBgHander()
+        return NubiaThreadHelper.get().getFpBgHander()
     }
 
     override fun onStart(service: NubiaSystemUIService) {

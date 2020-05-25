@@ -5,7 +5,6 @@ import android.os.HandlerThread
 import android.os.Looper
 import android.os.Process
 import android.util.Log
-import android.util.PrintWriterPrinter
 import cn.nubia.systemui.NubiaSystemUIApplication.Companion.TAG
 import cn.nubia.systemui.common.DumpHelper
 import java.io.*
@@ -18,13 +17,24 @@ class NubiaThreadHelper private constructor(): DumpHelper.Dump {
     private val mMainHandler:Handler = Handler(Looper.getMainLooper())
     private val DEBUG = false
     val mQueueList = LinkedList<Queue<Any>>()
-    private val mFingerprintHandler:Handler by lazy {
-        HandlerThread("FpThread").let {
+    private val mFpFrontHandler:Handler by lazy {
+        HandlerThread("FpFrontThread").let {
             it.start()
             it.looper
         }.let {
             Handler(it).apply {
                 Process.setThreadPriority(Process.THREAD_PRIORITY_DISPLAY+1)
+            }
+        }
+    }
+
+    private val mFpBgHandler:Handler by lazy {
+        HandlerThread("FpBgThread").let {
+            it.start()
+            it.looper
+        }.let {
+            Handler(it).apply {
+                Process.setThreadPriority(Process.THREAD_PRIORITY_DEFAULT+1)
             }
         }
     }
@@ -40,26 +50,15 @@ class NubiaThreadHelper private constructor(): DumpHelper.Dump {
         }
     }
 
-    private val mBackgroundHandler:Handler by lazy {
-        HandlerThread("BgThread").let {
-            it.start()
-            it.looper
-        }.let {
-            Handler(it).apply {
-                Process.setThreadPriority(Process.THREAD_PRIORITY_DEFAULT+1)
-            }
-        }
-    }
-
     init {
-        handlerBackground{
+        handlerFpBg{
             registerDump()
         }
         if(DEBUG){
             mMainHandler.looper.setMessageLogging{
                 Log.i(TAG, it)
             }
-            mFingerprintHandler.looper.setMessageLogging{
+            mFpFrontHandler.looper.setMessageLogging{
                 Log.i(TAG, it)
             }
             mSurfaceHandler.looper.setMessageLogging{
@@ -76,12 +75,12 @@ class NubiaThreadHelper private constructor(): DumpHelper.Dump {
         return mSurfaceHandler
     }
 
-    fun getFingerHander():Handler{
-        return mFingerprintHandler
+    fun getFpFrontHander():Handler{
+        return mFpFrontHandler
     }
 
-    fun getBgHander():Handler{
-        return mBackgroundHandler
+    fun getFpBgHander():Handler{
+        return mFpBgHandler
     }
 
     @Synchronized fun pollQueue(): Queue<Any> {
@@ -98,9 +97,9 @@ class NubiaThreadHelper private constructor(): DumpHelper.Dump {
         }
     }
 
-    fun <T> synBackgroundInvoke(action: ()->T):T? = synInvoke(mBackgroundHandler, action)
+    fun <T> synFpBgInvoke(action: ()->T):T? = synInvoke(mFpBgHandler, action)
 
-    fun <T> synFingerprintInvoke(action: ()->T):T? = synInvoke(mFingerprintHandler, action)
+    fun <T> synFpFrontInvoke(action: ()->T):T? = synInvoke(mFpFrontHandler, action)
 
     fun <T> synMainInvoke(action: ()->T):T? = synInvoke(mMainHandler, action)
 
@@ -120,9 +119,9 @@ class NubiaThreadHelper private constructor(): DumpHelper.Dump {
         }
     }
 
-    fun synBackground(action: ()->Unit) = synInvoke(mBackgroundHandler, action)
+    fun synFpBg(action: ()->Unit) = synInvoke(mFpBgHandler, action)
 
-    fun synFingerprint(action: ()->Unit) = synInvoke(mFingerprintHandler, action)
+    fun synFpFront(action: ()->Unit) = synInvoke(mFpFrontHandler, action)
 
     fun synMain(action: ()->Unit) = synInvoke(mMainHandler, action)
 
@@ -142,9 +141,9 @@ class NubiaThreadHelper private constructor(): DumpHelper.Dump {
         }
     }
 
-    fun handlerBackground(action: ()->Unit) = handlerInvoke(mBackgroundHandler, action)
+    fun handlerFpBg(action: ()->Unit) = handlerInvoke(mFpBgHandler, action)
 
-    fun handlerFingerprint(action: ()->Unit) = handlerInvoke(mFingerprintHandler, action)
+    fun handlerFpFront(action: ()->Unit) = handlerInvoke(mFpFrontHandler, action)
 
     fun handlerMain(action: ()->Unit) = handlerInvoke(mMainHandler, action)
 
@@ -176,13 +175,13 @@ class NubiaThreadHelper private constructor(): DumpHelper.Dump {
             mMainHandler.dump({
                 write("${it}\n")
             }, "     ")
-            mFingerprintHandler.dump({
+            mFpFrontHandler.dump({
                 write("${it}\n")
             }, "     ")
             mSurfaceHandler.dump({
                 write("${it}\n")
             }, "     ")
-            mBackgroundHandler.dump({
+            mFpBgHandler.dump({
                 write("${it}\n")
             }, "     ")
         }
