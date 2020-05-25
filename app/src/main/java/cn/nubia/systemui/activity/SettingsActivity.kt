@@ -113,4 +113,12 @@ class SettingsActivity : Activity(),ServiceConnection, View.OnClickListener{
         //    System.loadLibrary("native-lib")
         }
     }
+
+    override fun onResume() {
+        super.onResume()
+    }
+
+    override fun onPause() {
+        super.onPause()
+    }
 }
