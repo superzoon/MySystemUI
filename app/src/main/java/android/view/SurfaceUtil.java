@@ -1,5 +1,7 @@
 package android.view;
 
+import android.graphics.Bitmap;
+
 import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
@@ -19,6 +21,8 @@ public class SurfaceUtil {
         } catch (NoSuchMethodException e) {
             e.printStackTrace();
         }
+        Bitmap b = null;
+        b.recycle();
         return null;
     }
 

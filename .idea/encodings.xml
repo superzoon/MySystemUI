@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
   <component name="Encoding">
-    <file url="file://$PROJECT_DIR$/app/src/main/java/cn/nubia/systemui/fingerprint/process/ActionList.kt" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/app/src/main/java/cn/nubia/systemui/fingerprint/action/ActionFrame.kt" charset="UTF-8" />
     <file url="file://$PROJECT_DIR$/app/src/main/java/cn/nubia/systemui/fingerprint/view/FingerShortcutView.kt" charset="UTF-8" />
   </component>
 </project>

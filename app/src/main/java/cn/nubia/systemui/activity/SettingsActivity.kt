@@ -1,10 +1,12 @@
 package cn.nubia.systemui
 
+import android.annotation.SuppressLint
 import android.app.Activity
 import android.content.ComponentName
 import android.content.Context
 import android.content.Intent
 import android.content.ServiceConnection
+import android.content.pm.ActivityInfo
 import android.graphics.drawable.VectorDrawable
 import android.os.Bundle
 import android.os.IBinder
@@ -13,6 +15,7 @@ import android.view.MotionEvent
 import android.view.View
 import android.widget.Button
 import cn.nubia.systemui.activity.FingerShortcutActivity
+import cn.nubia.systemui.activity.GLRender
 import cn.nubia.systemui.aidl.INubiaSystemUI
 import cn.nubia.systemui.common.BiometricConstant
 import java.nio.charset.Charset
@@ -64,17 +67,31 @@ class SettingsActivity : Activity(),ServiceConnection, View.OnClickListener{
     var mSystemUI:INubiaSystemUI?  = null;
 
     val DEBUG = true
+    var mGLRender:GLRender? = null
+    @SuppressLint("SourceLockedOrientationActivity")
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_USER_PORTRAIT);
         setContentView(R.layout.activity_settings)
         if(DEBUG){
             startService(Intent(this.applicationContext, NubiaSystemUIService::class.java))
         }
+        mGLRender = GLRender(findViewById(R.id.surface_view))
         // Example of a call to a native method
         //sample_text.text = stringFromJNI()
         (getDrawable(R.drawable.ic_launcher_background) as VectorDrawable).apply {
 
         }
+    }
+
+    override fun onResume() {
+        super.onResume()
+        mGLRender?.onResume()
+    }
+
+    override fun onPause() {
+        super.onPause()
+        mGLRender?.onPause()
     }
 
     override fun onStart() {

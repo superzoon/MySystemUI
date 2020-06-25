@@ -97,4 +97,8 @@
             android:alpha="100"
             android:onClick="onClick"
             android:background="@drawable/fingerprint_icon_normal"/>
+    <android.opengl.GLSurfaceView
+        android:id="@+id/surface_view"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"/>
 </LinearLayout>
