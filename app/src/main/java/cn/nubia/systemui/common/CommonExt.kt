@@ -47,7 +47,7 @@ fun File.readLine():String = if(canRead()){
     }
 
 fun File.unMonitor(callback:(String?)->Unit){
-    NubiaThreadHelper.get().handlerBackground {
+    NubiaThreadHelper.get().handlerFpBg {
         if(mMonitorFileMap.containsKey(name)){
             mMonitorFileMap[name]?.remove(callback)
         }
@@ -60,7 +60,7 @@ fun File.unMonitor(callback:(String?)->Unit){
 
 //读取阻塞节点文件，在后台线程返回
 fun File.monitor(callback:(String?)->Unit){
-    NubiaThreadHelper.get().handlerBackground {
+    NubiaThreadHelper.get().handlerFpBg {
         if(mMonitorFileMap.containsKey(name)){
             mMonitorFileMap[name]?.add(callback)
             if(mMonitorValueMap[name]!=null){
@@ -78,7 +78,7 @@ fun File.monitor(callback:(String?)->Unit){
                             while (size>0){
                                 mMonitorValueMap[name] = r.readLine()
                                 if(!mMonitorValueMap[name].isNullOrEmpty()){
-                                    NubiaThreadHelper.get().synBackground {
+                                    NubiaThreadHelper.get().synFpBg {
                                         forEach {
                                             it.invoke(mMonitorValueMap[name])
                                         }
@@ -92,7 +92,7 @@ fun File.monitor(callback:(String?)->Unit){
                         try {
                             r?.close()
                         }catch (e:Exception){}
-                        NubiaThreadHelper.get().synBackground {
+                        NubiaThreadHelper.get().synFpBg {
                             forEach {
                                 it.invoke(null)
                             }

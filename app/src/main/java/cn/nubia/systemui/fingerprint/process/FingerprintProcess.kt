@@ -96,7 +96,7 @@ abstract class  FingerprintProcess(val mContext:Context, val mFpController:Finge
                     Log.w(TAG, "hbm")
                 })
 
-                mThreadHelper.handlerBackground {
+                mThreadHelper.handlerFpBg {
                     mFpManager.processCmd(BiometricCmd.CMD_DOWN, 0, 0, byteArrayOf(), 0)
                     setHBM(true)
                     mFpController.syn {
@@ -142,9 +142,9 @@ abstract class  FingerprintProcess(val mContext:Context, val mFpController:Finge
     open protected fun onUIReady(){
         when(mState){
             ProcessState.UI_READYING -> {
-                mThreadHelper.handlerBackground {
+                mThreadHelper.handlerFpBg {
                     mFpManager.processCmd(BiometricCmd.CMD_UI_READY, 0, 0 , byteArrayOf(), 0)
-                    mThreadHelper.synFingerprint{
+                    mThreadHelper.synFpFront{
                         if(mState == ProcessState.UI_READYING){
                             mState = ProcessState.UI_READY
                         }
@@ -195,7 +195,7 @@ abstract class  FingerprintProcess(val mContext:Context, val mFpController:Finge
         when(mState){
             ProcessState.UPING -> {
                 onAuthStateChange(STATE_AUTH_FINGER_UP);
-                mThreadHelper.handlerBackground {
+                mThreadHelper.handlerFpBg {
                     mFpManager.processCmd(BiometricCmd.CMD_UP, 0, 0 , byteArrayOf(), 0)
                     setHBM(false)
                     mFpController.syn{

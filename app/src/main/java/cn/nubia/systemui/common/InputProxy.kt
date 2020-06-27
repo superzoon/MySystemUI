@@ -2,7 +2,6 @@ package cn.nubia.systemui.common
 
 import android.content.Context
 import android.hardware.input.InputManager
-import android.service.wallpaper.WallpaperService
 import android.util.Log
 import android.view.*
 import cn.nubia.systemui.NubiaSystemUIApplication
@@ -33,7 +32,7 @@ class InputProxy private constructor(val mContext:Context) {
         }
     }
 
-    private val mHandler = NubiaThreadHelper.get().getBgHander()
+    private val mHandler = NubiaThreadHelper.get().getFpBgHander()
     private val mInputManager = mContext.getSystemService(InputManager::class.java)
     private val mList = mutableListOf<Reference<EventListener>>()
     private var receiver:InputEventReceiver?

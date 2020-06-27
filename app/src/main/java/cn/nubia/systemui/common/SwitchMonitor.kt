@@ -11,7 +11,7 @@ import java.lang.ref.Reference
 import java.lang.ref.WeakReference
 
 //监控settings值变化
-class SwitchMonitor (val mHandler:Handler = NubiaThreadHelper.get().getBgHander()): ContentObserver(mHandler){
+class SwitchMonitor (val mHandler:Handler = NubiaThreadHelper.get().getFpBgHander()): ContentObserver(mHandler){
 
     interface Callback{
         open fun onGloablChange(key:String, value:String?){ }
@@ -52,7 +52,7 @@ class SwitchMonitor (val mHandler:Handler = NubiaThreadHelper.get().getBgHander(
     }
 
     fun observer(){
-        NubiaThreadHelper.get().handlerBackground {
+        NubiaThreadHelper.get().handlerFpBg {
             mContext.contentResolver.also {resolver->
                 mGloablNames.forEach{ name->
                     resolver.registerContentObserver(Settings.Global.getUriFor(name), false, this)
